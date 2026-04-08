@@ -606,7 +606,7 @@
             panelSesion.Controls.Add(iniciobtn);
             panelSesion.Controls.Add(txtpass);
             panelSesion.Controls.Add(txtusuario);
-            panelSesion.Location = new Point(7, 3);
+            panelSesion.Location = new Point(7, 4);
             panelSesion.Name = "panelSesion";
             panelSesion.Size = new Size(487, 357);
             panelSesion.TabIndex = 17;
