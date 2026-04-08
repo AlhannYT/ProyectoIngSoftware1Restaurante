@@ -121,6 +121,16 @@
     <value>105, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="CrearDBbtn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAA
+        cAAAAHABznhikwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAC7SURBVDhPrZJB
+        DgFBEEXfQRyEI4i1DbewcAvXILFxBhbcA0ewlJAnNc3MtMx0+MlPKt31f1f9GYAJcAUehbwAY6LYAVPg
+        FLS2aRV1jmrOGtjogVgExRYYRp1D9UjNoATJ4HOFEqYVNpmA+nKtwQ1YxljuLUXXamrU1hpHQeHZ4N3f
+        QsrgDsybtz2gRi2HCKMavy/V7JsGfhFp7XjHjPDTQO1rjFmMVV2KrhDTCl2N35BC/IvBL2z9okV8AkuD
+        d6XKJ9gdAAAAAElFTkSuQmCC
+</value>
+  </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAAEAAAAAAAEAIAB3OAAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAEAAAABAAgGAAAAXHKoZgAAOD5J

@@ -430,7 +430,7 @@
             NombrePCtxt.BackColor = Color.Transparent;
             NombrePCtxt.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             NombrePCtxt.ForeColor = Color.Black;
-            NombrePCtxt.Location = new Point(2, 1);
+            NombrePCtxt.Location = new Point(2, -76);
             NombrePCtxt.Margin = new Padding(2, 0, 2, 0);
             NombrePCtxt.Name = "NombrePCtxt";
             NombrePCtxt.Size = new Size(38, 21);
@@ -578,7 +578,7 @@
             creditoslabel.AutoSize = true;
             creditoslabel.BackColor = Color.Transparent;
             creditoslabel.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            creditoslabel.Location = new Point(689, 1);
+            creditoslabel.Location = new Point(689, -73);
             creditoslabel.Margin = new Padding(2, 0, 2, 0);
             creditoslabel.Name = "creditoslabel";
             creditoslabel.Size = new Size(331, 21);
@@ -694,7 +694,7 @@
             label37.ForeColor = Color.Black;
             label37.Image = Properties.Resources.teclado__1_;
             label37.ImageAlign = ContentAlignment.MiddleLeft;
-            label37.Location = new Point(4, 1);
+            label37.Location = new Point(4, -73);
             label37.Name = "label37";
             label37.Size = new Size(646, 21);
             label37.TabIndex = 75;

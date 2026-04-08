@@ -41,7 +41,7 @@ namespace Proyecto_restaurante
                     SELECT IdUsuario 
                     FROM Usuario 
                     WHERE Login = @usuario AND Contrasena = @pass AND Activo = 1";
-                                        
+
                     using (SqlCommand cmd = new SqlCommand(queryUsuario, conexion))
                     {
                         cmd.Parameters.AddWithValue("@usuario", txtusuario.Text);
@@ -71,7 +71,7 @@ namespace Proyecto_restaurante
                     SELECT Admin 
                     FROM PermisosUsuario 
                     WHERE IdUsuario = @IdUsuario";
-                                        
+
                     using (SqlCommand cmdPermiso = new SqlCommand(queryPermiso, conexion))
                     {
                         cmdPermiso.Parameters.AddWithValue("@IdUsuario", idUsuario);
@@ -207,15 +207,18 @@ namespace Proyecto_restaurante
 
         private void sqlbtn_Click(object sender, EventArgs e)
         {
-            conexionpanel.Location = new Point(0, 33);
-            conexionpanel.BringToFront();
-            conexionpanel.Visible = true;
+            autorizar.Location = new Point(78, 71);
+            autorizar.BringToFront();
+            autorizar.Visible = true;
+
+            panelSesion.Enabled = false;
         }
 
         private void salirsqlbtn_Click(object sender, EventArgs e)
         {
             conexionpanel.Location = new Point(605, 45);
             conexionpanel.Visible = false;
+            
         }
 
         private void guardarbtn_Click(object sender, EventArgs e)
@@ -505,6 +508,144 @@ namespace Proyecto_restaurante
             {
                 recordarchk.BackColor = SystemColors.Window;
             }
+        }
+
+        private async void CrearDBbtn_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(servidortxt.Text) || string.IsNullOrEmpty(usuarioservidortxt.Text) || string.IsNullOrEmpty(contservidortxt.Text))
+            {
+                MessageBox.Show("Error: Campos vacíos.");
+                return;
+            }
+
+            progressBar1.Visible = true;
+            progressBar1.Value = 10;
+
+            string servidor = servidortxt.Text;
+            string usuario = usuarioservidortxt.Text;
+            string contraseña = contservidortxt.Text;
+
+            string conexion = $"Server={servidor};Database=master;User Id={usuario};Password={contraseña};TrustServerCertificate=True;";
+
+            string nombreDB = "GloriaRestaurant";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(conexion))
+                {
+                    await conn.OpenAsync();
+                }
+
+                progressBar1.Value = 30;
+                MessageBox.Show("Conexión exitosa");
+
+                bool existe = await Task.Run(() => ExisteBaseDatos(conexion, nombreDB));
+
+                if (existe)
+                {
+                    progressBar1.Value = 0;
+                    MessageBox.Show("La base de datos ya existe. No se puede crear nuevamente.");
+                    return;
+                }
+
+                progressBar1.Value = 50;
+
+                await Task.Run(() => EjecutarScript(conexion, ScriptDB.CrearBaseDatos));
+
+                progressBar1.Value = 90;
+
+                MessageBox.Show("Base de datos creada correctamente");
+
+                guardarbtn.PerformClick();
+
+                progressBar1.Value = 100;
+            }
+            catch (Exception ex)
+            {
+                progressBar1.Value = 0;
+                MessageBox.Show("Error: " + ex.Message);
+            }
+            finally
+            {
+                await Task.Delay(500);
+                progressBar1.Visible = false;
+            }
+        }
+
+        private void EjecutarScript(string conexion, string script)
+        {
+            using (SqlConnection conn = new SqlConnection(conexion))
+            {
+                conn.Open();
+
+                string[] comandos = script.Split(
+                    new[] { "\r\nGO", "\nGO", "GO" },
+                    StringSplitOptions.RemoveEmptyEntries
+                );
+
+                foreach (string comando in comandos)
+                {
+                    if (!string.IsNullOrWhiteSpace(comando))
+                    {
+                        using (SqlCommand cmd = new SqlCommand(comando, conn))
+                        {
+                            cmd.CommandTimeout = 0;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool ExisteBaseDatos(string conexion, string nombreDB)
+        {
+            using (SqlConnection conn = new SqlConnection(conexion))
+            {
+                conn.Open();
+
+                string query = "SELECT COUNT(*) FROM sys.databases WHERE name = @nombre";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@nombre", nombreDB);
+
+                    int count = (int)cmd.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+        }
+
+        private void autorizarBTN_Click(object sender, EventArgs e)
+        {
+            if (usuAdmin.Text == UsuarioAdmin && contAdmin.Text == PassAdmin)
+            {
+                esAdmin = true;
+
+                //quita
+                autorizar.Location = new Point(51, 436);
+                autorizar.BringToFront();
+                autorizar.Visible = true;
+
+                //pone el otro
+                conexionpanel.Location = new Point(0, 33);
+                conexionpanel.BringToFront();
+                conexionpanel.Visible = true;
+                panelSesion.Enabled = true;
+            }
+            else
+            {
+                MessageBox.Show("Usuario o contraseña incorrectos / Inactivo.");
+                return;
+            }
+        }
+
+        private void salirAutorBTN_Click(object sender, EventArgs e)
+        {
+            autorizar.Location = new Point(51, 436);
+            autorizar.BringToFront();
+            autorizar.Visible = true;
+
+            panelSesion.Enabled = true;
         }
     }
 }
