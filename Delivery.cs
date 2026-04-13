@@ -32,6 +32,8 @@ namespace Proyecto_restaurante
         private decimal totalAcumulado = 0;
         private decimal subtotalAcumulado = 0;
         private string IdClientePersonaST = "1"; //Al contado por defecto
+        private string vehiculoAsignado = "";
+        private string motivoAsignacion = "";
         bool modoEntregar = false;
 
         private List<Panel> ordenesSeleccionadas = new List<Panel>();
@@ -78,6 +80,7 @@ namespace Proyecto_restaurante
             INNER JOIN Caja c
                 ON conf.IdCaja = c.IdCaja
             WHERE conf.NombrePC = @NombrePC";
+
 
             using (SqlConnection con = new SqlConnection(conexionString))
             {
@@ -131,8 +134,28 @@ namespace Proyecto_restaurante
                 detalleorden.Columns.Add("subtotal", "Importe");
             }
 
+            cmbZonaEntrega.Items.Clear();
+            cmbZonaEntrega.Items.Add("Centro");
+            cmbZonaEntrega.Items.Add("Norte");
+            cmbZonaEntrega.Items.Add("Sur");
+            cmbZonaEntrega.Items.Add("Este");
+            cmbZonaEntrega.Items.Add("Oeste");
+            cmbZonaEntrega.Items.Add("Periferia");
+
+            if (cmbZonaEntrega.Items.Count > 0)
+                cmbZonaEntrega.SelectedIndex = 0;
+
             Comprobantes();
+
+            panelResenas.Visible = false;
+            panelResenas.BringToFront();
+
+            panelResenas.Left = (this.ClientSize.Width - panelResenas.Width) / 2;
+            panelResenas.Top = (this.ClientSize.Height - panelResenas.Height) / 2;
+
+            CargarResumenResenas();
         }
+
 
         private void Comprobantes()
         {
@@ -284,8 +307,134 @@ namespace Proyecto_restaurante
 
             guardarpedidobtn.Enabled = true;
             detalleorden.Enabled = true;
+
         }
 
+        private int ObtenerTotalComidas()
+        {
+            int totalComidas = 0;
+
+            foreach (DataGridViewRow fila in detalleorden.Rows)
+            {
+                if (fila.IsNewRow) continue;
+                totalComidas += Convert.ToInt32(fila.Cells["cantidad"].Value);
+            }
+
+            return totalComidas;
+        }
+
+        private void AsignarRepartidorAutomaticamente()
+        {
+            if (string.IsNullOrWhiteSpace(direccioncliente.Text))
+            {
+                MessageBox.Show("Debe indicar una dirección.");
+                return;
+            }
+
+            // 1. Detectar zona desde la dirección
+            string zonaDetectada = DetectarZonaDesdeBD(direccioncliente.Text)?.Trim();
+
+            if (!string.IsNullOrWhiteSpace(zonaDetectada))
+            {
+                int idx = cmbZonaEntrega.FindStringExact(zonaDetectada);
+                if (idx >= 0)
+                    cmbZonaEntrega.SelectedIndex = idx;
+            }
+
+            // 2. Si no pudo detectar, usar la que esté seleccionada manualmente
+            if (cmbZonaEntrega.SelectedIndex < 0)
+            {
+                MessageBox.Show("No se pudo determinar la zona automáticamente. Selecciónela manualmente.");
+                return;
+            }
+
+            int totalComidas = ObtenerTotalComidas();
+
+            if (totalComidas <= 0)
+            {
+                MessageBox.Show("Debe agregar productos antes de asignar un repartidor.");
+                return;
+            }
+
+            string zona = cmbZonaEntrega.Text;
+
+            string query = @"
+    SELECT TOP 1
+        e.IdEmpleado,
+        p.NombreCompleto,
+        r.ZonaAsignada,
+        r.TipoVehiculo,
+        r.RapidezPct,
+        r.FamiliaridadPct,
+        r.CapacidadMaxima
+    FROM Repartidor r
+    INNER JOIN Empleado e ON r.IdEmpleado = e.IdEmpleado
+    INNER JOIN Persona p ON e.IdPersona = p.IdPersona
+    WHERE e.Activo = 1
+      AND p.Activo = 1
+      AND e.IdRolEmpleado = 6
+      AND r.CapacidadMaxima >= @TotalComidas
+      AND (
+            (@TotalComidas >= 10 AND r.TipoVehiculo IN ('Carro', 'MotorGrande'))
+            OR
+            (@TotalComidas < 10 AND r.TipoVehiculo IN ('Motor', 'MotorGrande', 'Carro'))
+          )
+    ORDER BY
+        CASE WHEN r.ZonaAsignada = @Zona THEN 0 ELSE 1 END,
+        CASE 
+            WHEN @TotalComidas >= 10 AND r.TipoVehiculo IN ('Carro', 'MotorGrande') THEN 0
+            WHEN @TotalComidas < 10 AND r.TipoVehiculo = 'Motor' THEN 0
+            ELSE 1
+        END,
+        r.RapidezPct DESC,
+        r.FamiliaridadPct DESC;";
+
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@Zona", zona);
+                    cmd.Parameters.AddWithValue("@TotalComidas", totalComidas);
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            idrepartidor.Text = dr["IdEmpleado"].ToString();
+                            nombrerepartidor.Text = dr["NombreCompleto"].ToString();
+
+                            vehiculoAsignado = dr["TipoVehiculo"]?.ToString() ?? "";
+                            txtVehiculoAsignado.Text = string.IsNullOrWhiteSpace(vehiculoAsignado)
+                                ? "Sin vehículo"
+                                : vehiculoAsignado;
+
+                            if (totalComidas >= 10)
+                                motivoAsignacion = "Pedido grande: se asignó un vehículo con mayor capacidad.";
+                            else if (dr["ZonaAsignada"].ToString().Trim().Equals(zona, StringComparison.OrdinalIgnoreCase))
+                                motivoAsignacion = "Asignado por coincidencia de zona y rapidez.";
+                            else
+                                motivoAsignacion = "Asignado por disponibilidad y capacidad.";
+
+                            txtMotivoAsignacion.Text = motivoAsignacion;
+
+                            MessageBox.Show("Zona y repartidor asignados automáticamente.");
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se encontró un repartidor disponible para esa zona/capacidad.");
+                            idrepartidor.Clear();
+                            nombrerepartidor.Clear();
+                            txtVehiculoAsignado.Clear();
+                            txtMotivoAsignacion.Clear();
+                            vehiculoAsignado = "";
+                            motivoAsignacion = "";
+                        }
+                    }
+                }
+            }
+        }
         private void limpiarbtn_Click(object sender, EventArgs e)
         {
 
@@ -303,6 +452,15 @@ namespace Proyecto_restaurante
             txtiva.Clear();
             labelsubtotal.Text = "0";
             labeltotal.Text = "0";
+            idrepartidor.Clear();
+            nombrerepartidor.Clear();
+            txtVehiculoAsignado.Clear();
+            txtMotivoAsignacion.Clear();
+            vehiculoAsignado = "";
+            motivoAsignacion = "";
+
+            if (cmbZonaEntrega.Items.Count > 0)
+                cmbZonaEntrega.SelectedIndex = 0;
 
             detalleorden.Rows.Clear();
 
@@ -355,10 +513,10 @@ namespace Proyecto_restaurante
                     {
                         string queryInsert = @"
                         INSERT INTO Pedido
-                        (Fecha, Origen, IdClientePersona, NombreCliente, Estado, Total, Nota, Direccion, IdRepartidor)
-                        VALUES
-                        (@Fecha, @Origen, @IdClientePersona, @NombreCliente, @Estado, @Total, @Nota, @Direccion, @Repartidor);
-                        SELECT SCOPE_IDENTITY();";
+                        (Fecha, Origen, IdClientePersona, NombreCliente, Estado, EstadoDelivery, Total, Nota, Direccion, IdRepartidor, ZonaEntrega, VehiculoAsignado, MotivoAsignacion)
+                         VALUES
+                         (@Fecha, @Origen, @IdClientePersona, @NombreCliente, @Estado, @EstadoDelivery, @Total, @Nota, @Direccion, @Repartidor, @ZonaEntrega, @VehiculoAsignado, @MotivoAsignacion);
+                         SELECT SCOPE_IDENTITY();";
 
                         SqlCommand cmdInsert = new SqlCommand(queryInsert, conexion, transaccion);
 
@@ -367,10 +525,14 @@ namespace Proyecto_restaurante
                         cmdInsert.Parameters.AddWithValue("@IdClientePersona", Convert.ToInt32(IdClientePersonaST));
                         cmdInsert.Parameters.AddWithValue("@NombreCliente", txtnombrecompleto.Text);
                         cmdInsert.Parameters.AddWithValue("@Estado", "Pendiente");
+                        cmdInsert.Parameters.AddWithValue("@EstadoDelivery", "Pendiente");
                         cmdInsert.Parameters.AddWithValue("@Total", Convert.ToDecimal(labeltotal.Text));
                         cmdInsert.Parameters.AddWithValue("@Nota", notatxt.Text);
                         cmdInsert.Parameters.AddWithValue("@Direccion", direccioncliente.Text);
                         cmdInsert.Parameters.AddWithValue("@Repartidor", idrepartidor.Text);
+                        cmdInsert.Parameters.AddWithValue("@ZonaEntrega", cmbZonaEntrega.Text);
+                        cmdInsert.Parameters.AddWithValue("@VehiculoAsignado", txtVehiculoAsignado.Text);
+                        cmdInsert.Parameters.AddWithValue("@MotivoAsignacion", txtMotivoAsignacion.Text);
 
                         idPedidoGenerado = Convert.ToInt32(cmdInsert.ExecuteScalar());
                     }
@@ -378,18 +540,19 @@ namespace Proyecto_restaurante
                     else if (EditarEstado == 1)
                     {
                         idPedidoGenerado = PedidoID;
-
                         string queryUpdate = @"
                         UPDATE Pedido SET
-                            Fecha = @Fecha,
-                            IdClientePersona = @IdClientePersona,
-                            NombreCliente = @NombreCliente,
-                            Total = @Total,
-                            Nota = @Nota,
-                            Direccion = @Direccion,
-                            IdRepartidor = @Repartidor
+                         Fecha = @Fecha,
+                         IdClientePersona = @IdClientePersona,
+                         NombreCliente = @NombreCliente,
+                         Total = @Total,
+                         Nota = @Nota,
+                          Direccion = @Direccion,
+                         IdRepartidor = @Repartidor,
+                        ZonaEntrega = @ZonaEntrega,
+                        VehiculoAsignado = @VehiculoAsignado,
+                        MotivoAsignacion = @MotivoAsignacion
                         WHERE IdPedido = @IdPedido";
-
                         SqlCommand cmdUpdate = new SqlCommand(queryUpdate, conexion, transaccion);
 
                         cmdUpdate.Parameters.AddWithValue("@Fecha", SistemaFecha.FechaActual);
@@ -400,7 +563,9 @@ namespace Proyecto_restaurante
                         cmdUpdate.Parameters.AddWithValue("@Direccion", direccioncliente.Text);
                         cmdUpdate.Parameters.AddWithValue("@Repartidor", idrepartidor.Text);
                         cmdUpdate.Parameters.AddWithValue("@IdPedido", PedidoID);
-
+                        cmdUpdate.Parameters.AddWithValue("@ZonaEntrega", cmbZonaEntrega.Text);
+                        cmdUpdate.Parameters.AddWithValue("@VehiculoAsignado", txtVehiculoAsignado.Text);
+                        cmdUpdate.Parameters.AddWithValue("@MotivoAsignacion", txtMotivoAsignacion.Text);
                         cmdUpdate.ExecuteNonQuery();
 
                         SqlCommand cmdDel = new SqlCommand(
@@ -596,6 +761,7 @@ namespace Proyecto_restaurante
                 numerotxt.Text = telefono;
                 IdClientePersonaST = IdClientePersona;
                 direccioncliente.Text = Direccion;
+                AplicarZonaAutomatica();
 
                 int tipoDoc = Convert.ToInt32(tablaclientes.CurrentRow.Cells["TipoDoc"].Value);
 
@@ -1089,23 +1255,24 @@ namespace Proyecto_restaurante
                     else if (canceladochk.Checked) estado = "Cancelado";
 
                     string query = @"
-                    SELECT 
-                        IdPedido,
-                        NombreCliente,
-                        IdMesa,
-                        Total,
-                        Estado,
-                        Fecha
-                    FROM Pedido
+                      SELECT 
+                      IdPedido,
+                      NombreCliente,
+                      IdMesa,
+                      Total,
+                       Estado,
+                      EstadoDelivery,
+                      Fecha
+                     FROM Pedido
                     WHERE
-                        (NombreCliente LIKE @buscar
-                        OR CAST(IdPedido AS VARCHAR) LIKE @buscar
-                        OR CAST(IdMesa AS VARCHAR) LIKE @buscar
-                        OR CAST(Total AS VARCHAR) LIKE @buscar)
-                        AND Fecha >= @inicio
-                        AND Fecha <= @fin
-                        AND (@estado = '' OR Estado = @estado)
-                    ORDER BY Fecha DESC";
+                     (NombreCliente LIKE @buscar
+                     OR CAST(IdPedido AS VARCHAR) LIKE @buscar
+                     OR CAST(IdMesa AS VARCHAR) LIKE @buscar
+                     OR CAST(Total AS VARCHAR) LIKE @buscar)
+                     AND Fecha >= @inicio
+                     AND Fecha <= @fin
+                     AND (@estado = '' OR Estado = @estado)
+                     ORDER BY Fecha DESC";
 
                     using (SqlCommand comando = new SqlCommand(query, conectar))
                     {
@@ -1119,6 +1286,8 @@ namespace Proyecto_restaurante
                         da.Fill(dt);
 
                         tabladatospedidos.DataSource = dt;
+                        if (tabladatospedidos.Columns.Contains("EstadoDelivery"))
+                            tabladatospedidos.Columns["EstadoDelivery"].HeaderText = "Estado Delivery";
                     }
                 }
                 catch (Exception ex)
@@ -1134,10 +1303,47 @@ namespace Proyecto_restaurante
             detallepagopanel.Location = new Point(1617, 6);
 
             FacturarPedido();
+
+            if (PedidoID > 0)
+            {
+                ActualizarEstadoDelivery(PedidoID, "En camino");
+
+                string linkResena = GenerarYGuardarLinkResena(PedidoID);
+
+                if (!string.IsNullOrWhiteSpace(linkResena))
+                {
+                    Clipboard.SetText(linkResena);
+
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = linkResena,
+                        UseShellExecute = true
+                    });
+
+                    MessageBox.Show("Link de reseña generado, copiado al portapapeles y abierto en el navegador.");
+                }
+            }
+
             MostrarDevuelta();
 
             devueltapanel.Visible = true;
             devueltapanel.Location = new Point(466, 0);
+        }
+        private void ActualizarEstadoDelivery(int idPedido, string nuevoEstado)
+        {
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                string sql = "UPDATE dbo.Pedido SET EstadoDelivery = @EstadoDelivery WHERE IdPedido = @IdPedido";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@EstadoDelivery", nuevoEstado);
+                    cmd.Parameters.AddWithValue("@IdPedido", idPedido);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         private void volverdetalle_Click(object sender, EventArgs e)
@@ -1841,6 +2047,257 @@ namespace Proyecto_restaurante
             {
                 MessageBox.Show("Error al eliminar facturas: " + ex.Message);
             }
+        }
+        private string ConstruirUrlResena(string token)
+        {
+            return $"http://localhost/PanelCentral3/PanelCentral/php/resena_delivery.php?token={token}";
+        }
+
+        private string GenerarTokenResena()
+        {
+            return Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper();
+        }
+
+        private string GenerarYGuardarLinkResena(int idPedido)
+        {
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                // Si ya existe un link activo para ese pedido, lo reutiliza
+                string sqlExiste = @"
+        SELECT TOP 1 Token
+        FROM dbo.LinkResenaDelivery
+        WHERE IdPedido = @IdPedido
+          AND Usado = 0
+          AND Expirado = 0
+        ORDER BY IdLinkResena DESC";
+
+                using (SqlCommand cmdExiste = new SqlCommand(sqlExiste, con))
+                {
+                    cmdExiste.Parameters.AddWithValue("@IdPedido", idPedido);
+
+                    object tokenExistente = cmdExiste.ExecuteScalar();
+
+                    if (tokenExistente != null && tokenExistente != DBNull.Value)
+                    {
+                        return ConstruirUrlResena(tokenExistente.ToString());
+                    }
+                }
+
+                // Si no existe, crea uno nuevo
+                string tokenNuevo = GenerarTokenResena();
+
+                string sqlInsert = @"
+        INSERT INTO dbo.LinkResenaDelivery (IdPedido, Token, TelefonoDestino, Expirado, Usado)
+        VALUES (@IdPedido, @Token, @TelefonoDestino, 0, 0)";
+
+                using (SqlCommand cmdInsert = new SqlCommand(sqlInsert, con))
+                {
+                    cmdInsert.Parameters.AddWithValue("@IdPedido", idPedido);
+                    cmdInsert.Parameters.AddWithValue("@Token", tokenNuevo);
+                    cmdInsert.Parameters.AddWithValue("@TelefonoDestino", numerotxt.Text.Trim());
+
+                    cmdInsert.ExecuteNonQuery();
+                }
+
+                return ConstruirUrlResena(tokenNuevo);
+            }
+        }
+
+        private string DetectarZonaDesdeBD(string direccion)
+        {
+            if (string.IsNullOrWhiteSpace(direccion))
+                return "";
+
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                string sql = @"
+        SELECT TOP 1 Zona
+        FROM dbo.SectorZona
+        WHERE UPPER(@Direccion) LIKE '%' + UPPER(Sector) + '%'
+        ORDER BY LEN(Sector) DESC;";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@Direccion", direccion.Trim());
+
+                    object resultado = cmd.ExecuteScalar();
+
+                    if (resultado != null && resultado != DBNull.Value)
+                        return resultado.ToString().Trim();
+                }
+            }
+
+            return "";
+        }
+
+        private void AplicarZonaAutomatica()
+        {
+            string zonaDetectada = DetectarZonaDesdeBD(direccioncliente.Text)?.Trim();
+
+            if (string.IsNullOrWhiteSpace(zonaDetectada))
+                return;
+
+            this.BeginInvoke(new Action(() =>
+            {
+                int idx = cmbZonaEntrega.FindStringExact(zonaDetectada);
+
+                if (idx >= 0)
+                {
+                    cmbZonaEntrega.SelectedIndex = idx;
+                }
+            }));
+        }
+        private void direccioncliente_TextChanged(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(direccioncliente.Text))
+                AplicarZonaAutomatica();
+        }
+
+
+        private void CargarResumenResenas()
+        {
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                string sql = @"
+        SELECT 
+            ISNULL(CAST(AVG(CAST(Puntuacion AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS Promedio,
+            COUNT(*) AS Cantidad
+        FROM dbo.ResenaDelivery";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        txtPromedioResena.Text = Convert.ToDecimal(dr["Promedio"]).ToString("0.00");
+                        txtCantidadResenas.Text = dr["Cantidad"].ToString();
+                    }
+                }
+            }
+        }
+
+        private void CargarUltimasResenas()
+        {
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                string sql = @"
+        SELECT TOP 10
+            r.IdPedido,
+            p.NombreCliente,
+            r.Puntuacion,
+            r.Comentario,
+            r.FechaResena
+        FROM dbo.ResenaDelivery r
+        INNER JOIN dbo.Pedido p ON r.IdPedido = p.IdPedido
+        ORDER BY r.FechaResena DESC;";
+
+                using (SqlDataAdapter da = new SqlDataAdapter(sql, con))
+                {
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    dgvUltimasResenas.DataSource = dt;
+                }
+            }
+
+            if (dgvUltimasResenas.Columns.Contains("IdPedido"))
+                dgvUltimasResenas.Columns["IdPedido"].HeaderText = "Pedido";
+
+            if (dgvUltimasResenas.Columns.Contains("NombreCliente"))
+                dgvUltimasResenas.Columns["NombreCliente"].HeaderText = "Cliente";
+
+            if (dgvUltimasResenas.Columns.Contains("Puntuacion"))
+                dgvUltimasResenas.Columns["Puntuacion"].HeaderText = "Puntuación";
+
+            if (dgvUltimasResenas.Columns.Contains("Comentario"))
+                dgvUltimasResenas.Columns["Comentario"].HeaderText = "Comentario";
+
+            if (dgvUltimasResenas.Columns.Contains("FechaResena"))
+                dgvUltimasResenas.Columns["FechaResena"].HeaderText = "Fecha";
+        }
+        private void label18_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void tabPage1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            AsignarRepartidorAutomaticamente();
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panel5_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void label23_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label23_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox2_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label23_Click_2(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            panelResenas.Visible = false;
+        }
+
+        private void label23_Click_3(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel6_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void btnVerResenas_Click(object sender, EventArgs e)
+        {
+            CargarUltimasResenas();
+            panelResenas.Visible = true;
+            panelResenas.BringToFront();
         }
     }
 }
