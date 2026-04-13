@@ -312,7 +312,7 @@
             tabPage6.Controls.Add(panel6);
             tabPage6.Location = new Point(4, 30);
             tabPage6.Name = "tabPage6";
-            tabPage6.Size = new Size(804, 637);
+            tabPage6.Size = new Size(1685, 637);
             tabPage6.TabIndex = 2;
             tabPage6.Text = "Mesas";
             // 
@@ -969,7 +969,7 @@
             tabPage1.Location = new Point(4, 30);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(804, 637);
+            tabPage1.Size = new Size(1685, 637);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Ordenar";
             // 
@@ -1826,7 +1826,7 @@
             cancelarPanel.Controls.Add(label18);
             cancelarPanel.Controls.Add(label24);
             cancelarPanel.Controls.Add(label23);
-            cancelarPanel.Location = new Point(825, 9);
+            cancelarPanel.Location = new Point(3, 647);
             cancelarPanel.Name = "cancelarPanel";
             cancelarPanel.Size = new Size(810, 680);
             cancelarPanel.TabIndex = 13;
@@ -1982,7 +1982,7 @@
             detallepanelcompleto.BackColor = Color.Gray;
             detallepanelcompleto.Controls.Add(detallepagopanel);
             detallepanelcompleto.Controls.Add(devueltapanel);
-            detallepanelcompleto.Location = new Point(5, 649);
+            detallepanelcompleto.Location = new Point(819, 3);
             detallepanelcompleto.Name = "detallepanelcompleto";
             detallepanelcompleto.Size = new Size(810, 680);
             detallepanelcompleto.TabIndex = 9;
@@ -2092,6 +2092,7 @@
             restante1txt.Name = "restante1txt";
             restante1txt.Size = new Size(97, 29);
             restante1txt.TabIndex = 0;
+            restante1txt.TextChanged += restante1txt_TextChanged;
             // 
             // label41
             // 
@@ -2159,6 +2160,7 @@
             restante2txt.Name = "restante2txt";
             restante2txt.Size = new Size(97, 29);
             restante2txt.TabIndex = 15;
+            restante2txt.TextChanged += restante2txt_TextChanged;
             // 
             // tarjetacmbx
             // 
@@ -2257,6 +2259,7 @@
             restante3txt.Name = "restante3txt";
             restante3txt.Size = new Size(97, 29);
             restante3txt.TabIndex = 82;
+            restante3txt.TextChanged += restante3txt_TextChanged;
             // 
             // transfMonto
             // 
@@ -2346,6 +2349,7 @@
             // 
             // button9
             // 
+            button9.Enabled = false;
             button9.Image = Properties.Resources.pagar;
             button9.ImageAlign = ContentAlignment.MiddleLeft;
             button9.Location = new Point(196, 399);

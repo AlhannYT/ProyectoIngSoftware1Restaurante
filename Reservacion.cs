@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Proyecto_restaurante.menu;
+using System.Globalization;
 
 namespace Proyecto_restaurante
 {
@@ -18,8 +19,6 @@ namespace Proyecto_restaurante
         public Reservacion()
         {
             InitializeComponent();
-
-
         }
 
         private int ReservaID = 0;
@@ -30,10 +29,24 @@ namespace Proyecto_restaurante
         public int MesaID;
         private int SalaID = 0;
         private int EventoID = 0;
+        private int Origen = 1; // 1 = reserva, 2 = evento
         private int? ClienteIDEvento = null;
         private List<int> mesasSeleccionadasEvento = new List<int>();
+        private Dictionary<int, decimal> preciosMesasSeleccionadasEvento = new Dictionary<int, decimal>();
         private int estadoBuscarSalaEvento = 1;
         private bool panelSalaEventoVisible = false;
+
+        decimal TotalPedido = 0m;
+        decimal TotalAplicado = 0m;
+        decimal TotalRestante = 0;
+
+        private decimal totalAcumulado = 0;
+        private decimal subtotalAcumulado = 0;
+        public string comprobanteFinal;
+        bool cargandoOrden = false;
+        bool cargandoGrupos = false;
+
+        string conexionString = ConexionBD.ConexionSQL();
 
         private class MesaInfoReserva
         {
@@ -47,12 +60,23 @@ namespace Proyecto_restaurante
                 ReservacionMesasDGV.CurrentRow.IsNewRow)
                 return null;
 
-            if (ReservacionMesasDGV.CurrentRow.Cells["IdReserva"].Value == null)
+            if (ReservacionMesasDGV.CurrentRow.Cells["ID"].Value == null)
                 return null;
 
-            return Convert.ToInt32(ReservacionMesasDGV.CurrentRow.Cells["IdReserva"].Value);
+            return Convert.ToInt32(ReservacionMesasDGV.CurrentRow.Cells["ID"].Value);
         }
 
+        private int? ObtenerIdEventoSeleccionado()
+        {
+            if (ReservacionMesasDGV.CurrentRow == null ||
+                ReservacionMesasDGV.CurrentRow.IsNewRow)
+                return null;
+
+            if (ReservacionMesasDGV.CurrentRow.Cells["ID"].Value == null)
+                return null;
+
+            return Convert.ToInt32(ReservacionMesasDGV.CurrentRow.Cells["ID"].Value);
+        }
 
         private void BtnMesa_Click(object sender, EventArgs e)
         {
@@ -82,7 +106,7 @@ namespace Proyecto_restaurante
 
         private void Reservacion_Load(object sender, EventArgs e)
         {
-            ConfigurarDateTimePickersReserva();
+            tipoReservacmbx.SelectedIndex = 0;
             CargarSalaCBX();
 
             PanelClientes.Visible = false;
@@ -108,30 +132,11 @@ namespace Proyecto_restaurante
 
             CargarMesasDisponiblesEvento();
 
-            ConfigurarDateTimePickersEvento();
-
             FechaInicialDTP.Value = SistemaFecha.FechaActual;
             FechaFinDTP.Value = SistemaFecha.FechaActual;
             panelOrganizador.Visible = false;
             panelOrganizador.Parent = tabEventos;
             panelOrganizador.Anchor = AnchorStyles.None;
-        }
-        private void ConfigurarDateTimePickersReserva()
-        {
-            FechaCreacionDTP.Format = DateTimePickerFormat.Short;
-            FechaCreacionDTP.Format = DateTimePickerFormat.Custom;
-
-            FechaCreacionDTP.CustomFormat = "dd/MM/yyyy HH:mm";
-            FechaCreacionDTP.ShowUpDown = true;
-        }
-
-        private void ConfigurarDateTimePickersEvento()
-        {
-            fechacreacionreserva.Format = DateTimePickerFormat.Short;
-            fecreservacion.Format = DateTimePickerFormat.Custom;
-
-            fecreservacion.CustomFormat = "dd/MM/yyyy HH:mm";
-            fecreservacion.ShowUpDown = true;
         }
 
         private void PrepararNuevaReserva()
@@ -144,7 +149,7 @@ namespace Proyecto_restaurante
             CargarProximoIdReserva();
 
             fechacreacionreserva.Value = SistemaFecha.FechaActual;
-            fecreservacion.Value = SistemaFecha.FechaActual;
+            fechaResv.Value = SistemaFecha.FechaActual;
 
             idclientetxt.Clear();
             txtnombrecompleto.Clear();
@@ -184,7 +189,6 @@ namespace Proyecto_restaurante
 
             idcliente2.Clear();
             NombreEventoTxt.Clear();
-            CantPersonaNUD.Value = 1;
 
             cedulacliente2.Clear();
             numerocliente2.Clear();
@@ -243,6 +247,9 @@ namespace Proyecto_restaurante
 
             if (salacmbx.Items.Count > 0)
                 salacmbx.SelectedIndex = 0;
+
+            if (salacmbx2.Items.Count > 0)
+                salacmbx2.SelectedIndex = 0;
         }
 
         private void CargarProximoIdEvento()
@@ -419,7 +426,7 @@ namespace Proyecto_restaurante
             }
 
             int idMesa = idMesaSeleccionada;
-            DateTime fechaReserva = fecreservacion.Value;
+            DateTime fechaReserva = fechaResv.Value;
             int personas = (int)CantidadPersonasNUD.Value;
             string nombreCliente = txtnombrecompleto.Text.Trim();
 
@@ -703,37 +710,67 @@ namespace Proyecto_restaurante
             {
                 con.Open();
 
-                string sql = @"
-                        SELECT 
-                        r.IdReserva,
-                        r.FechaHora,
-                        r.Personas,
-                        r.Cliente,
-                        r.Estado,
-                        m.Numero      AS NumeroMesa,
-                        s.Nombre      AS Sala
-                        FROM Reserva r
-                        INNER JOIN Mesa m ON r.IdMesa = m.IdMesa
-                        INNER JOIN Sala s ON m.IdSala = s.IdSala
-                        WHERE 
-                        r.FechaHora >= @Desde
-                        AND r.FechaHora < DATEADD(day, 1, @Hasta)
-                        AND (
-                        @Texto = '' OR
-                        CAST(r.IdReserva AS varchar(10)) LIKE @Filtro OR
-                        r.Cliente LIKE @Filtro OR
-                        CAST(m.Numero AS varchar(10)) LIKE @Filtro OR
-                        s.Nombre LIKE @Filtro
-                        ) ORDER BY r.FechaHora DESC;";
+                string sql = "";
+                string filtro = string.IsNullOrWhiteSpace(texto) ? "" : texto.Trim();
 
-                using (SqlCommand cmd = new SqlCommand(sql, con))
+                using (SqlCommand cmd = new SqlCommand())
                 {
+                    cmd.Connection = con;
                     cmd.Parameters.AddWithValue("@Desde", desde);
                     cmd.Parameters.AddWithValue("@Hasta", hasta);
-
-                    string filtro = string.IsNullOrWhiteSpace(texto) ? "" : texto.Trim();
                     cmd.Parameters.AddWithValue("@Texto", filtro);
                     cmd.Parameters.AddWithValue("@Filtro", "%" + filtro + "%");
+
+                    if (tipoReservacmbx.SelectedIndex == 0)
+                    {
+                        sql = @"
+                        SELECT 
+                            r.IdReserva AS ID,
+                            r.Cliente,
+                            r.FechaHora,
+                            r.Estado,
+                            ISNULL(r.TotalRes, 0) AS Total
+                        FROM Reserva r
+                        WHERE 
+                            r.FechaHora >= @Desde
+                            AND r.FechaHora < DATEADD(day, 1, @Hasta)
+                            AND (
+                                @Texto = '' OR
+                                CAST(r.IdReserva AS varchar(10)) LIKE @Filtro OR
+                                r.Cliente LIKE @Filtro OR
+                                r.Estado LIKE @Filtro
+                            )
+                        ORDER BY r.FechaHora DESC;";
+                    }
+                    else if (tipoReservacmbx.SelectedIndex == 1)
+                    {
+                        sql = @"
+                        SELECT 
+                            e.IdEvento AS ID,
+                            e.Organizador,
+                            e.Estado,
+                            e.FechaInicio,
+                            e.FechaFin
+                        FROM Evento e
+                        WHERE 
+                            e.FechaInicio < DATEADD(day, 1, @Hasta)
+                            AND e.FechaFin >= @Desde
+                            AND (
+                                @Texto = '' OR
+                                CAST(e.IdEvento AS varchar(10)) LIKE @Filtro OR
+                                e.Organizador LIKE @Filtro OR
+                                e.Estado LIKE @Filtro OR
+                                e.NombreEvento LIKE @Filtro
+                            )
+                        ORDER BY e.FechaInicio DESC;";
+                    }
+                    else
+                    {
+                        ReservacionMesasDGV.DataSource = null;
+                        return;
+                    }
+
+                    cmd.CommandText = sql;
 
                     using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                     {
@@ -744,98 +781,62 @@ namespace Proyecto_restaurante
                 }
             }
 
-            if (ReservacionMesasDGV.Columns.Contains("IdReserva"))
-                ReservacionMesasDGV.Columns["IdReserva"].HeaderText = "ID";
-            if (ReservacionMesasDGV.Columns.Contains("FechaHora"))
-                ReservacionMesasDGV.Columns["FechaHora"].HeaderText = "Fecha / Hora";
-            if (ReservacionMesasDGV.Columns.Contains("Personas"))
-                ReservacionMesasDGV.Columns["Personas"].HeaderText = "Personas";
-            if (ReservacionMesasDGV.Columns.Contains("Cliente"))
-                ReservacionMesasDGV.Columns["Cliente"].HeaderText = "Cliente";
-            if (ReservacionMesasDGV.Columns.Contains("Estado"))
-                ReservacionMesasDGV.Columns["Estado"].HeaderText = "Estado";
-            if (ReservacionMesasDGV.Columns.Contains("NumeroMesa"))
-                ReservacionMesasDGV.Columns["NumeroMesa"].HeaderText = "Mesa";
-            if (ReservacionMesasDGV.Columns.Contains("Sala"))
-                ReservacionMesasDGV.Columns["Sala"].HeaderText = "Sala";
-        }
-        private void fecini_ValueChanged(object sender, EventArgs e)
-        {
-            CargarReservas(txtbusquedareserva.Text);
+            if (tipoReservacmbx.SelectedIndex == 0)
+            {
+                if (ReservacionMesasDGV.Columns.Contains("ID"))
+                    ReservacionMesasDGV.Columns["ID"].HeaderText = "ID";
+                if (ReservacionMesasDGV.Columns.Contains("Cliente"))
+                    ReservacionMesasDGV.Columns["Cliente"].HeaderText = "Cliente";
+                if (ReservacionMesasDGV.Columns.Contains("FechaHora"))
+                    ReservacionMesasDGV.Columns["FechaHora"].HeaderText = "Fecha / Hora";
+                if (ReservacionMesasDGV.Columns.Contains("Estado"))
+                    ReservacionMesasDGV.Columns["Estado"].HeaderText = "Estado";
+                if (ReservacionMesasDGV.Columns.Contains("Total"))
+                    ReservacionMesasDGV.Columns["Total"].HeaderText = "Total";
+            }
+            else if (tipoReservacmbx.SelectedIndex == 1)
+            {
+                if (ReservacionMesasDGV.Columns.Contains("ID"))
+                    ReservacionMesasDGV.Columns["ID"].HeaderText = "ID";
+                if (ReservacionMesasDGV.Columns.Contains("Organizador"))
+                    ReservacionMesasDGV.Columns["Organizador"].HeaderText = "Organizador";
+                if (ReservacionMesasDGV.Columns.Contains("Estado"))
+                    ReservacionMesasDGV.Columns["Estado"].HeaderText = "Estado";
+                if (ReservacionMesasDGV.Columns.Contains("FechaInicio"))
+                    ReservacionMesasDGV.Columns["FechaInicio"].HeaderText = "Fecha Inicio";
+                if (ReservacionMesasDGV.Columns.Contains("FechaFin"))
+                    ReservacionMesasDGV.Columns["FechaFin"].HeaderText = "Fecha Fin";
+            }
         }
 
-        private void fecfin_ValueChanged(object sender, EventArgs e)
-        {
-            CargarReservas(txtbusquedareserva.Text);
-        }
         private void txtbusquedareserva_TextChanged(object sender, EventArgs e)
         {
             CargarReservas(txtbusquedareserva.Text);
         }
+
         private void ordenbtn_Click(object sender, EventArgs e)
         {
-            int? id = ObtenerIdReservaSeleccionada();
-            if (id == null)
+            detallepanelcompleto.Visible = true;
+            detallepanelcompleto.BringToFront();
+            detallepanelcompleto.Location = new Point(0, 0);
+            detallepagopanel.Visible = true;
+            
+            if(ReservacionMesasDGV.CurrentRow == null || ReservacionMesasDGV.CurrentRow.IsNewRow)
             {
-                MessageBox.Show("Seleccione una reservación en la lista.");
+                MessageBox.Show("Seleccione una reservación para ver su orden.");
                 return;
             }
 
-            DialogResult r = MessageBox.Show("¿Marcar esta reservación como CONFIRMADA?",
-                                             "Confirmar", MessageBoxButtons.YesNo,
-                                             MessageBoxIcon.Question);
-            if (r != DialogResult.Yes) return;
+            int idReserva = Convert.ToInt32(ReservacionMesasDGV.CurrentRow.Cells["ID"].Value);
 
-            string conexionString = ConexionBD.ConexionSQL();
-
-            using (SqlConnection con = new SqlConnection(conexionString))
+            if(tipoReservacmbx.SelectedIndex == 0)
             {
-                con.Open();
-                SqlTransaction tran = con.BeginTransaction();
-
-                try
-                {
-                    int idMesa = 0;
-
-                    string sqlGetMesa = "SELECT IdMesa FROM Reserva WHERE IdReserva = @Id;";
-                    using (SqlCommand cmdGet = new SqlCommand(sqlGetMesa, con, tran))
-                    {
-                        cmdGet.Parameters.AddWithValue("@Id", id.Value);
-                        object res = cmdGet.ExecuteScalar();
-                        if (res != null && res != DBNull.Value)
-                            idMesa = Convert.ToInt32(res);
-                    }
-
-                    string sql = "UPDATE Reserva SET Estado = 'confirmada' WHERE IdReserva = @Id;";
-                    using (SqlCommand cmd = new SqlCommand(sql, con, tran))
-                    {
-                        cmd.Parameters.AddWithValue("@Id", id.Value);
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    if (idMesa > 0)
-                    {
-                        string sqlMesa = "UPDATE Mesa SET Reservado = 1 WHERE IdMesa = @IdMesa;";
-                        using (SqlCommand cmdMesa = new SqlCommand(sqlMesa, con, tran))
-                        {
-                            cmdMesa.Parameters.AddWithValue("@IdMesa", idMesa);
-                            cmdMesa.ExecuteNonQuery();
-                        }
-                    }
-
-                    tran.Commit();
-
-                    MessageBox.Show("Reservación confirmada.");
-                }
-                catch (Exception ex)
-                {
-                    tran.Rollback();
-                    MessageBox.Show("Error al confirmar: " + ex.Message);
-                }
+                Origen = 1;
             }
-
-            CargarReservas(txtbusquedareserva.Text);
-            CargarMesasDisponiblesReserva();
+            else if(tipoReservacmbx.SelectedIndex == 1)
+            {
+                Origen = 2;
+            }
         }
 
         private void cancelarreservabtn_Click(object sender, EventArgs e)
@@ -962,6 +963,7 @@ namespace Proyecto_restaurante
             bool ocupada = datos.Ocupado;
             bool reservadaNormal = datos.ReservadoNormal;
             bool reservadaEvento = datos.ReservadoEvento;
+            decimal precioMesa = datos.PrecioMesa;
 
             if (ocupada || reservadaNormal || reservadaEvento)
             {
@@ -982,13 +984,21 @@ namespace Proyecto_restaurante
             if (mesasSeleccionadasEvento.Contains(idMesa))
             {
                 mesasSeleccionadasEvento.Remove(idMesa);
+                if (preciosMesasSeleccionadasEvento.ContainsKey(idMesa))
+                    preciosMesasSeleccionadasEvento.Remove(idMesa);
+
                 btn.BackColor = Color.LightGreen;
             }
             else
             {
                 mesasSeleccionadasEvento.Add(idMesa);
+                preciosMesasSeleccionadasEvento[idMesa] = precioMesa;
+
                 btn.BackColor = Color.DodgerBlue;
             }
+
+            ActualizarResumenMesasEvento();
+            cantMesasLista.Text = mesasSeleccionadasEvento.Count.ToString();
         }
 
         private void CargarMesasDisponiblesEvento(string filtro = "")
@@ -1002,9 +1012,7 @@ namespace Proyecto_restaurante
 
             int? idSalaFiltro = null;
 
-            if (salacmbx.SelectedValue != null &&
-                int.TryParse(salacmbx.SelectedValue.ToString(), out int tmpSala) &&
-                tmpSala > 0)
+            if (salacmbx.SelectedValue != null && int.TryParse(salacmbx.SelectedValue.ToString(), out int tmpSala) && tmpSala > 0)
             {
                 idSalaFiltro = tmpSala;
             }
@@ -1021,7 +1029,8 @@ namespace Proyecto_restaurante
                     m.Numero,
                     m.Capacidad,
                     m.Ocupado,
-                    ISNULL(m.Reservado, 0) AS Reservado, -- (Reserva normal)
+                    ISNULL(m.Reservado, 0) AS Reservado,
+                    ISNULL(m.PrecReserva, 0) AS PrecReserva,
 
                     CASE 
                         WHEN EXISTS (
@@ -1037,9 +1046,9 @@ namespace Proyecto_restaurante
                         THEN 1 ELSE 0
                     END AS ReservadaEvento
 
-                    FROM Mesa m
-                    INNER JOIN Sala s ON m.IdSala = s.IdSala
-                    WHERE 1 = 1 AND (@IdSala IS NULL OR m.IdSala = @IdSala)";
+                FROM Mesa m
+                INNER JOIN Sala s ON m.IdSala = s.IdSala
+                WHERE 1 = 1 AND (@IdSala IS NULL OR m.IdSala = @IdSala)";
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
@@ -1077,6 +1086,7 @@ namespace Proyecto_restaurante
                             bool ocupada = Convert.ToBoolean(dr["Ocupado"]);
                             bool reservadaNormal = Convert.ToInt32(dr["Reservado"]) == 1;
                             bool reservadaEvento = Convert.ToInt32(dr["ReservadaEvento"]) == 1;
+                            decimal precioMesa = Convert.ToDecimal(dr["PrecReserva"]);
 
                             Button btn = new Button
                             {
@@ -1093,7 +1103,8 @@ namespace Proyecto_restaurante
                                 IdMesa = idMesa,
                                 Ocupado = ocupada,
                                 ReservadoNormal = reservadaNormal,
-                                ReservadoEvento = reservadaEvento
+                                ReservadoEvento = reservadaEvento,
+                                PrecioMesa = precioMesa
                             };
 
                             bool yaSeleccionada = mesasSeleccionadasEvento.Contains(idMesa);
@@ -1118,6 +1129,18 @@ namespace Proyecto_restaurante
                     }
                 }
             }
+        }
+
+        private void ActualizarResumenMesasEvento()
+        {
+            cantMesasLista.Text = mesasSeleccionadasEvento.Count.ToString();
+
+            decimal subtotal = preciosMesasSeleccionadasEvento.Values.Sum();
+            decimal itbis = subtotal * 0.18m;
+            decimal total = subtotal + itbis;
+
+            labelSubtotalEV.Text = subtotal.ToString("N2");
+            labelTotalEV.Text = total.ToString("N2");
         }
 
         private void BuscarMesaTxtB_TextChanged(object sender, EventArgs e)
@@ -1156,13 +1179,6 @@ namespace Proyecto_restaurante
                 return;
             }
 
-            if (CantPersonaNUD.Value <= 0)
-            {
-                MessageBox.Show("La cantidad de personas debe ser mayor que 0.");
-                CantPersonaNUD.Focus();
-                return;
-            }
-
             if (FechaFinDTP.Value < FechaInicialDTP.Value)
             {
                 MessageBox.Show("La fecha de fin no puede ser menor que la fecha de inicio.");
@@ -1185,13 +1201,14 @@ namespace Proyecto_restaurante
 
             string organizador = nombrecliente2.Text.Trim();
             string nombreEvento = NombreEventoTxt.Text.Trim();
-            int personas = (int)CantPersonaNUD.Value;
             DateTime fechaIni = FechaInicialDTP.Value;
             DateTime fechaFin = FechaFinDTP.Value;
+            decimal totalEvento = EventoID;
 
             string nota = null;
 
             string conexionString = ConexionBD.ConexionSQL();
+
 
             using (SqlConnection conexion = new SqlConnection(conexionString))
             {
@@ -1258,13 +1275,14 @@ namespace Proyecto_restaurante
                     }
 
                     // 2) INSERT / UPDATE Evento
+
                     if (EventoID == 0)
                     {
                         string sqlInsert = @"
                         INSERT INTO Evento
-                        (Organizador, FechaInicio, FechaFin, PersonasEstimadas, IdSala, MontajeMin, DesmontajeMin, Estado, CreadoEn, NombreEvento, IdCliente, Nota, ToralRes)
+                        (Organizador, FechaInicio, FechaFin, IdSala, MontajeMin, DesmontajeMin, Estado, CreadoEn, NombreEvento, IdCliente, Nota, TotalRes)
                         VALUES
-                        (@Organizador, @FechaInicio, @FechaFin, @Personas, @IdSala, @MontajeMin, @DesmontajeMin, @Estado, SYSDATETIME(), @NombreEvento, @IdCliente, @Nota, 0.00);
+                        (@Organizador, @FechaInicio, @FechaFin, @IdSala, @MontajeMin, @DesmontajeMin, @Estado, SYSDATETIME(), @NombreEvento, @IdCliente, @Nota, @Total);
                         SELECT CAST(SCOPE_IDENTITY() AS int);";
 
                         using (SqlCommand cmd = new SqlCommand(sqlInsert, conexion, trans))
@@ -1272,7 +1290,6 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@Organizador", organizador);
                             cmd.Parameters.AddWithValue("@FechaInicio", fechaIni);
                             cmd.Parameters.AddWithValue("@FechaFin", fechaFin);
-                            cmd.Parameters.AddWithValue("@Personas", personas);
                             cmd.Parameters.AddWithValue("@IdSala", (object)idSalaEvento ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@MontajeMin", 0);
                             cmd.Parameters.AddWithValue("@DesmontajeMin", 0);
@@ -1281,6 +1298,10 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@IdCliente", (object)ClienteIDEvento ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Nota", (object)nota ?? DBNull.Value);
 
+                            cmd.Parameters.Add("@Total", SqlDbType.Decimal).Value = totalEvento;
+                            cmd.Parameters["@Total"].Precision = 10;
+                            cmd.Parameters["@Total"].Scale = 2;
+
                             EventoID = (int)cmd.ExecuteScalar();
                             IdEventoTxtB.Text = EventoID.ToString();
                         }
@@ -1288,16 +1309,16 @@ namespace Proyecto_restaurante
                     else
                     {
                         string sqlUpdate = @"
-                            UPDATE Evento
-                            SET Organizador        = @Organizador,
-                            FechaInicio        = @FechaInicio,
-                            FechaFin           = @FechaFin,
-                            PersonasEstimadas  = @Personas,
-                            IdSala             = @IdSala,
-                            NombreEvento       = @NombreEvento,
-                            IdCliente          = @IdCliente,
-                            Nota               = @Nota
-                            WHERE IdEvento = @IdEvento;";
+                        UPDATE Evento
+                        SET Organizador  = @Organizador,
+                            FechaInicio  = @FechaInicio,
+                            FechaFin     = @FechaFin,
+                            IdSala       = @IdSala,
+                            NombreEvento = @NombreEvento,
+                            IdCliente    = @IdCliente,
+                            Nota         = @Nota,
+                            TotalRes     = @Total
+                        WHERE IdEvento = @IdEvento;";
 
                         using (SqlCommand cmd = new SqlCommand(sqlUpdate, conexion, trans))
                         {
@@ -1305,11 +1326,14 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@Organizador", organizador);
                             cmd.Parameters.AddWithValue("@FechaInicio", fechaIni);
                             cmd.Parameters.AddWithValue("@FechaFin", fechaFin);
-                            cmd.Parameters.AddWithValue("@Personas", personas);
                             cmd.Parameters.AddWithValue("@IdSala", (object)idSalaEvento ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@NombreEvento", nombreEvento);
                             cmd.Parameters.AddWithValue("@IdCliente", (object)ClienteIDEvento ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Nota", (object)nota ?? DBNull.Value);
+
+                            cmd.Parameters.Add("@Total", SqlDbType.Decimal).Value = totalEvento;
+                            cmd.Parameters["@Total"].Precision = 10;
+                            cmd.Parameters["@Total"].Scale = 2;
 
                             cmd.ExecuteNonQuery();
                         }
@@ -1397,6 +1421,457 @@ namespace Proyecto_restaurante
         {
             PrepararNuevoEvento();
             CargarMesasDisponiblesEvento();
+            mesasSeleccionadasEvento.Clear();
+            preciosMesasSeleccionadasEvento.Clear();
+            ActualizarResumenMesasEvento();
+        }
+
+        private void salacmbx2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            mesasSeleccionadasEvento.Clear();
+            preciosMesasSeleccionadasEvento.Clear();
+
+            ActualizarResumenMesasEvento();
+
+            CargarMesasDisponiblesEvento(BuscarMesaTxtB.Text.Trim());
+        }
+
+        private void buscarBTN_Click(object sender, EventArgs e)
+        {
+            CargarReservas(txtbusquedareserva.Text.Trim());
+        }
+
+        private void tipoReservacmbx_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CargarReservas(txtbusquedareserva.Text.Trim());
+        }
+
+        class PagoEfectivoInfo
+        {
+            public decimal MontoDado { get; set; }
+            public decimal MontoAplicado { get; set; }
+            public decimal Devuelta { get; set; }
+        }
+
+        private List<PagoEfectivoInfo> pagosEfectivo = new List<PagoEfectivoInfo>();
+
+        private void aplicarefectivo_Click(object sender, EventArgs e)
+        {
+            if (!decimal.TryParse(efectivotxt.Text, out decimal montoDado))
+            {
+                MessageBox.Show("Monto inválido.");
+                return;
+            }
+
+            if (montoDado <= 0)
+            {
+                MessageBox.Show("Debe ingresar un monto válido.");
+                return;
+            }
+
+            decimal aplicado = montoDado;
+            decimal devueltaCalc = 0;
+
+            if (montoDado > TotalRestante)
+            {
+                aplicado = TotalRestante;
+                devueltaCalc = montoDado - TotalRestante;
+            }
+
+            pagosEfectivo.Add(new PagoEfectivoInfo
+            {
+                MontoDado = montoDado,
+                MontoAplicado = aplicado,
+                Devuelta = devueltaCalc
+            });
+
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(detallePagoDT);
+            row.Cells[0].Value = "EF";
+            row.Cells[1].Value = "";
+            row.Cells[2].Value = "Efectivo";
+            row.Cells[3].Value = montoDado;
+
+            detallePagoDT.Rows.Add(row);
+
+            devueltatxt.Text = devueltaCalc.ToString("N2");
+
+            efectivotxt.Clear();
+            button9.Enabled = true;
+            RecalcularTotalesPago();
+            RecargarRestante();
+        }
+
+        private void RecalcularTotalAplicado()
+        {
+            TotalAplicado = 0;
+
+            foreach (DataGridViewRow fila in detallePagoDT.Rows)
+            {
+                if (fila.IsNewRow) continue;
+                TotalAplicado += Convert.ToDecimal(fila.Cells[3].Value);
+            }
+
+            pagadotxt.Text = TotalAplicado.ToString("N2");
+
+            MostrarDevuelta();
+        }
+
+        private void RecalcularTotalesPago()
+        {
+            TotalAplicado = 0;
+
+            foreach (DataGridViewRow fila in detallePagoDT.Rows)
+            {
+                if (fila.IsNewRow) continue;
+                TotalAplicado += Convert.ToDecimal(fila.Cells[3].Value);
+            }
+
+            TotalRestante = TotalPedido - TotalAplicado;
+
+            if (TotalRestante < 0)
+                TotalRestante = 0;
+
+            pagadotxt.Text = TotalAplicado.ToString("N2");
+            restante1txt.Text = TotalRestante.ToString("N2");
+            restante2txt.Text = TotalRestante.ToString("N2");
+            restante3txt.Text = TotalRestante.ToString("N2");
+
+            MostrarDevuelta();
+        }
+
+        private void RecargarRestante()
+        {
+            if (restante1txt.Text == "0.00" || restante2txt.Text == "0.00" || restante3txt.Text == "0.00")
+            {
+                efectivotxt.Clear();
+                tarjetaMonto.Clear();
+                transfMonto.Clear();
+
+                aplicarefectivo.Enabled = false;
+                aplicartarjeta.Enabled = false;
+                aplicartransf.Enabled = false;
+            }
+            else
+            {
+                aplicarefectivo.Enabled = true;
+                aplicartarjeta.Enabled = true;
+                aplicartransf.Enabled = true;
+            }
+
+            if (restante1txt.Text == TotalAPagar.Text || restante2txt.Text == TotalAPagar.Text || restante2txt.Text == TotalAPagar.Text)
+            {
+                button9.Enabled = false;
+            }
+            else
+            {
+                button9.Enabled = true;
+            }
+
+            efectivotxt.Text = restante1txt.Text;
+            tarjetaMonto.Text = restante2txt.Text;
+            transfMonto.Text = restante3txt.Text;
+        }
+
+        private void MostrarDevuelta()
+        {
+            if (TotalAplicado >= TotalPedido)
+            {
+                devueltatxt.Text = (TotalAplicado - TotalPedido).ToString("N2");
+                totalpagar.Text = TotalAPagar.Text;
+            }
+            else
+            {
+                devueltatxt.Text = "0.00";
+            }
+                
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            detallepagopanel.Visible = false;
+            detallepagopanel.Location = new Point(1617, 6);
+
+            EfectuarReserva();
+            MostrarDevuelta();
+
+            devueltapanel.Visible = true;
+            devueltapanel.Location = new Point(466, 0);
+        }
+
+        private void EfectuarReserva()
+        {
+            int? id = ObtenerIdReservaSeleccionada();
+            if (id == null)
+            {
+                MessageBox.Show("Seleccione una reservación en la lista.");
+                return;
+            }
+
+            
+
+
+
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+                SqlTransaction tran = con.BeginTransaction();
+
+                    try
+                    {
+                        if (Origen == 1) // Reserva normal
+                        {
+                            int idMesa = 0;
+
+                            string sqlGetMesa = "SELECT IdMesa FROM Reserva WHERE IdReserva = @Id;";
+                            using (SqlCommand cmdGet = new SqlCommand(sqlGetMesa, con, tran))
+                            {
+                                cmdGet.Parameters.AddWithValue("@Id", id.Value);
+                                object res = cmdGet.ExecuteScalar();
+
+                                if (res != null && res != DBNull.Value)
+                                    idMesa = Convert.ToInt32(res);
+                            }
+
+                            string sqlReserva = "UPDATE Reserva SET Estado = 'confirmada' WHERE IdReserva = @Id;";
+                            using (SqlCommand cmd = new SqlCommand(sqlReserva, con, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@Id", id.Value);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            if (idMesa > 0)
+                            {
+                                string sqlMesa = "UPDATE Mesa SET Reservado = 1 WHERE IdMesa = @IdMesa;";
+                                using (SqlCommand cmdMesa = new SqlCommand(sqlMesa, con, tran))
+                                {
+                                    cmdMesa.Parameters.AddWithValue("@IdMesa", idMesa);
+                                    cmdMesa.ExecuteNonQuery();
+                                }
+                            }
+
+                            tran.Commit();
+                            MessageBox.Show("Reservación confirmada.");
+                        }
+                        else if (Origen == 2) // Evento
+                        {
+                            string sqlEvento = "UPDATE Evento SET Estado = 'confirmado' WHERE IdEvento = @Id;";
+                            using (SqlCommand cmd = new SqlCommand(sqlEvento, con, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@Id", id.Value);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            string sqlMesasEvento = @"
+                                UPDATE Mesa
+                                SET Reservado = 1
+                                WHERE IdMesa IN (
+                                    SELECT IdMesa
+                                    FROM EventoMesa
+                                    WHERE IdEvento = @Id
+                                );";
+
+                            using (SqlCommand cmdMesa = new SqlCommand(sqlMesasEvento, con, tran))
+                            {
+                                cmdMesa.Parameters.AddWithValue("@Id", id.Value);
+                                cmdMesa.ExecuteNonQuery();
+                            }
+
+                            tran.Commit();
+                            MessageBox.Show("Evento confirmado.");
+                        }
+                        else
+                        {
+                            tran.Rollback();
+                            MessageBox.Show("Origen no válido.");
+                            return;
+                        }
+                    } 
+                    catch (Exception ex)
+                    {
+                        tran.Rollback();
+                        MessageBox.Show("Error al confirmar: " + ex.Message);
+                        return;
+                    }
+
+                RegistrarPago(con, tran);
+            }
+
+            CargarReservas(txtbusquedareserva.Text);
+            CargarMesasDisponiblesReserva();
+            
+        }
+
+
+        private void RegistrarPago(SqlConnection conexion, SqlTransaction trans)
+        {
+            int indexEfectivo = 0;
+
+            foreach (DataGridViewRow fila in detallePagoDT.Rows)
+            {
+                if (fila.IsNewRow) continue;
+
+                string tipo = fila.Cells[0].Value.ToString();
+                string referencia = fila.Cells[1].Value?.ToString() ?? "";
+                string origen = fila.Cells[2].Value?.ToString() ?? "";
+
+                decimal totalAplicadoBD = 0;
+                decimal efectivoDado = 0;
+                decimal devuelta = 0;
+                decimal tarjeta = 0;
+                decimal transferencia = 0;
+
+                string tarjetaNombre = DBNull.Value.ToString();
+                string banco = DBNull.Value.ToString();
+
+                string tipoSQL = "";
+                if (tipo == "EF") tipoSQL = "Efectivo";
+                else if (tipo == "TJ") tipoSQL = "Tarjeta";
+                else if (tipo == "TR") tipoSQL = "Transferencia";
+                else tipoSQL = tipo;
+
+                if (tipo == "EF")
+                {
+                    var pago = pagosEfectivo[indexEfectivo];
+
+                    efectivoDado = pago.MontoDado;
+                    totalAplicadoBD = pago.MontoAplicado;
+                    devuelta = pago.Devuelta;
+
+                    indexEfectivo++;
+                }
+                else if (tipo == "TJ")
+                {
+                    tarjeta = Convert.ToDecimal(fila.Cells[3].Value);
+                    totalAplicadoBD = tarjeta;
+                    tarjetaNombre = origen;
+                }
+                else if (tipo == "TR")
+                {
+                    transferencia = Convert.ToDecimal(fila.Cells[3].Value);
+                    totalAplicadoBD = transferencia;
+                    banco = origen;
+                }
+
+                SqlCommand cmd = new SqlCommand(@"
+                INSERT INTO DetallePago (IdPedido, TipoDetalle, Efectivo, Devuelta, Tarjeta, TarjetaNombre, Transferencia, Banco, Total, Estado, Referencia, Origen)
+                VALUES (NULL, @TipoDetalle, @Efectivo, @Devuelta, @Tarjeta, @TarjetaNombre, @Transferencia, @Banco, @Total, @Estado, @Referencia, 1)",
+                conexion, trans);
+
+                cmd.Parameters.AddWithValue("@TipoDetalle", tipoSQL);
+                cmd.Parameters.AddWithValue("@Efectivo", efectivoDado);
+                cmd.Parameters.AddWithValue("@Devuelta", devuelta);
+                cmd.Parameters.AddWithValue("@Tarjeta", tarjeta);
+                cmd.Parameters.AddWithValue("@TarjetaNombre", string.IsNullOrWhiteSpace(tarjetaNombre) ? DBNull.Value : (object)tarjetaNombre);
+                cmd.Parameters.AddWithValue("@Transferencia", transferencia);
+                cmd.Parameters.AddWithValue("@Banco", string.IsNullOrWhiteSpace(banco) ? DBNull.Value : (object)banco);
+
+                cmd.Parameters.AddWithValue("@Total", totalAplicadoBD);
+
+                cmd.Parameters.AddWithValue("@Estado", 1);
+                cmd.Parameters.AddWithValue("@Referencia", referencia);
+                cmd.Parameters.AddWithValue("@Origen", Origen);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void aplicartarjeta_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(tarjetaref.Text) || tarjetacmbx.SelectedIndex < 0)
+            {
+                MessageBox.Show("Debe seleccionar tarjeta y referencia.");
+                return;
+            }
+
+            if (!decimal.TryParse(tarjetaMonto.Text, out decimal monto))
+            {
+                MessageBox.Show("Monto inválido.");
+                return;
+            }
+
+            if (monto > TotalRestante)
+            {
+                MessageBox.Show($"El monto de tarjeta excede el restante ({TotalRestante:N2}).");
+                return;
+            }
+
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(detallePagoDT);
+            row.Cells[0].Value = "TJ";
+            row.Cells[1].Value = tarjetaref.Text;
+            row.Cells[2].Value = tarjetacmbx.Text;
+            row.Cells[3].Value = monto;
+
+            detallePagoDT.Rows.Add(row);
+
+            tarjetaref.Clear();
+            tarjetaMonto.Clear();
+
+            RecalcularTotalesPago();
+        }
+
+        private void aplicartransf_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(bancoref.Text) || bancocmbx.SelectedIndex < 0)
+            {
+                MessageBox.Show("Debe seleccionar banco y referencia.");
+                return;
+            }
+
+            if (!decimal.TryParse(transfMonto.Text, out decimal monto))
+            {
+                MessageBox.Show("Monto inválido.");
+                return;
+            }
+
+            if (monto > TotalRestante)
+            {
+                MessageBox.Show($"El monto excede el restante ({TotalRestante:N2}).");
+                return;
+            }
+
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(detallePagoDT);
+            row.Cells[0].Value = "TR";
+            row.Cells[1].Value = bancoref.Text;
+            row.Cells[2].Value = bancocmbx.Text;
+            row.Cells[3].Value = monto;
+
+            detallePagoDT.Rows.Add(row);
+
+            bancoref.Clear();
+            transfMonto.Clear();
+
+            RecalcularTotalesPago();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            detallepanelcompleto.Visible = false;
+            detallepanelcompleto.Location = new Point(1617, 6);
+            efectivotxt.Clear();
+            tarjetaref.Clear();
+            bancoref.Clear();
+        }
+
+        private void eliminarDetalle_Click(object sender, EventArgs e)
+        {
+            if (detallePagoDT.Rows.Count == 0)
+            {
+                MessageBox.Show("No hay detalles para eliminar.");
+                button9.Enabled = false;
+                return;
+            }
+
+            foreach (DataGridViewRow fila in detallePagoDT.SelectedRows)
+            {
+                if (!fila.IsNewRow)
+                    detallePagoDT.Rows.Remove(fila);
+            }
+
+            RecalcularTotalAplicado();
+            RecalcularTotalesPago();
         }
     }
 }
