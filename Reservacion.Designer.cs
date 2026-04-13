@@ -52,8 +52,10 @@
             label4 = new Label();
             label47 = new Label();
             panel8 = new Panel();
+            labelTotalRES = new Label();
+            label59 = new Label();
+            labelSubtotalRES = new Label();
             fechaResv = new DateTimePicker();
-            labeltotal = new Label();
             label33 = new Label();
             panel5 = new Panel();
             CantidadPersonasNUD = new NumericUpDown();
@@ -298,7 +300,7 @@
             tabPage1.Location = new Point(4, 30);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(1562, 506);
+            tabPage1.Size = new Size(839, 506);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Reservaciones";
             // 
@@ -538,8 +540,10 @@
             // panel8
             // 
             panel8.BackColor = Color.FromArgb(64, 64, 64);
+            panel8.Controls.Add(labelTotalRES);
+            panel8.Controls.Add(label59);
+            panel8.Controls.Add(labelSubtotalRES);
             panel8.Controls.Add(fechaResv);
-            panel8.Controls.Add(labeltotal);
             panel8.Controls.Add(label33);
             panel8.Controls.Add(panel5);
             panel8.Controls.Add(CantidadPersonasNUD);
@@ -552,25 +556,47 @@
             panel8.Size = new Size(296, 284);
             panel8.TabIndex = 3;
             // 
+            // labelTotalRES
+            // 
+            labelTotalRES.AutoSize = true;
+            labelTotalRES.Font = new Font("Segoe UI", 12F);
+            labelTotalRES.ForeColor = SystemColors.Control;
+            labelTotalRES.Location = new Point(89, 123);
+            labelTotalRES.Name = "labelTotalRES";
+            labelTotalRES.Size = new Size(40, 21);
+            labelTotalRES.TabIndex = 192;
+            labelTotalRES.Text = "0.00";
+            // 
+            // label59
+            // 
+            label59.AutoSize = true;
+            label59.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            label59.ForeColor = SystemColors.Control;
+            label59.Location = new Point(10, 123);
+            label59.Name = "label59";
+            label59.Size = new Size(52, 21);
+            label59.TabIndex = 191;
+            label59.Text = "Total:";
+            // 
+            // labelSubtotalRES
+            // 
+            labelSubtotalRES.AutoSize = true;
+            labelSubtotalRES.Font = new Font("Segoe UI", 12F);
+            labelSubtotalRES.ForeColor = SystemColors.Control;
+            labelSubtotalRES.Location = new Point(89, 89);
+            labelSubtotalRES.Name = "labelSubtotalRES";
+            labelSubtotalRES.Size = new Size(40, 21);
+            labelSubtotalRES.TabIndex = 190;
+            labelSubtotalRES.Text = "0.00";
+            // 
             // fechaResv
             // 
             fechaResv.Font = new Font("Segoe UI", 12F);
             fechaResv.Format = DateTimePickerFormat.Short;
-            fechaResv.Location = new Point(85, 12);
+            fechaResv.Location = new Point(85, 9);
             fechaResv.Name = "fechaResv";
             fechaResv.Size = new Size(204, 29);
             fechaResv.TabIndex = 161;
-            // 
-            // labeltotal
-            // 
-            labeltotal.AutoSize = true;
-            labeltotal.Font = new Font("Segoe UI", 12F);
-            labeltotal.ForeColor = SystemColors.Control;
-            labeltotal.Location = new Point(68, 89);
-            labeltotal.Name = "labeltotal";
-            labeltotal.Size = new Size(40, 21);
-            labeltotal.TabIndex = 3;
-            labeltotal.Text = "0.00";
             // 
             // label33
             // 
@@ -579,13 +605,13 @@
             label33.ForeColor = SystemColors.Control;
             label33.Location = new Point(10, 89);
             label33.Name = "label33";
-            label33.Size = new Size(58, 21);
+            label33.Size = new Size(79, 21);
             label33.TabIndex = 3;
-            label33.Text = "Precio";
+            label33.Text = "Subtotal:";
             // 
             // panel5
             // 
-            panel5.Location = new Point(85, 127);
+            panel5.Location = new Point(85, 155);
             panel5.Name = "panel5";
             panel5.Size = new Size(218, 27);
             panel5.TabIndex = 160;
@@ -593,7 +619,7 @@
             // CantidadPersonasNUD
             // 
             CantidadPersonasNUD.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            CantidadPersonasNUD.Location = new Point(167, 51);
+            CantidadPersonasNUD.Location = new Point(167, 48);
             CantidadPersonasNUD.Name = "CantidadPersonasNUD";
             CantidadPersonasNUD.Size = new Size(122, 29);
             CantidadPersonasNUD.TabIndex = 5;
@@ -613,7 +639,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             label6.ForeColor = SystemColors.Control;
-            label6.Location = new Point(9, 55);
+            label6.Location = new Point(9, 52);
             label6.Name = "label6";
             label6.Size = new Size(78, 21);
             label6.TabIndex = 3;
@@ -624,7 +650,7 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             label5.ForeColor = SystemColors.Control;
-            label5.Location = new Point(8, 16);
+            label5.Location = new Point(8, 13);
             label5.Name = "label5";
             label5.Size = new Size(58, 21);
             label5.TabIndex = 3;
@@ -635,9 +661,9 @@
             notapanel.BackColor = Color.Gray;
             notapanel.Controls.Add(label22);
             notapanel.Controls.Add(notatxt);
-            notapanel.Location = new Point(5, 130);
+            notapanel.Location = new Point(5, 160);
             notapanel.Name = "notapanel";
-            notapanel.Size = new Size(287, 151);
+            notapanel.Size = new Size(287, 121);
             notapanel.TabIndex = 159;
             // 
             // label22
@@ -656,11 +682,11 @@
             // notatxt
             // 
             notatxt.Font = new Font("Segoe UI", 12F);
-            notatxt.Location = new Point(5, 29);
+            notatxt.Location = new Point(5, 27);
             notatxt.Multiline = true;
             notatxt.Name = "notatxt";
             notatxt.PlaceholderText = "Escribir nota aquí...";
-            notatxt.Size = new Size(276, 117);
+            notatxt.Size = new Size(276, 89);
             notatxt.TabIndex = 158;
             // 
             // panel24
@@ -975,7 +1001,7 @@
             tabEventos.Controls.Add(LimpiarFormEventoBtn);
             tabEventos.Location = new Point(4, 30);
             tabEventos.Name = "tabEventos";
-            tabEventos.Size = new Size(1562, 506);
+            tabEventos.Size = new Size(839, 506);
             tabEventos.TabIndex = 2;
             tabEventos.Text = "Eventos";
             // 
@@ -1299,6 +1325,7 @@
             // 
             // textBox1
             // 
+            textBox1.CharacterCasing = CharacterCasing.Upper;
             textBox1.Font = new Font("Segoe UI", 12F);
             textBox1.Location = new Point(5, 32);
             textBox1.Multiline = true;
@@ -1309,6 +1336,7 @@
             // 
             // NombreEventoTxt
             // 
+            NombreEventoTxt.CharacterCasing = CharacterCasing.Upper;
             NombreEventoTxt.Location = new Point(14, 31);
             NombreEventoTxt.Name = "NombreEventoTxt";
             NombreEventoTxt.PlaceholderText = "Nombre del Evento";
@@ -2619,7 +2647,6 @@
         private ComboBox tipodoccmbx;
         private TextBox rnc;
         private PictureBox pictureBox2;
-        private Label labeltotal;
         private Label label33;
         private TabPage tabEventos;
         private Button buscarBTN;
@@ -2746,5 +2773,8 @@
         private Label label30;
         private TextBox totalpagar;
         private Label label29;
+        private Label labelTotalRES;
+        private Label label59;
+        private Label labelSubtotalRES;
     }
 }

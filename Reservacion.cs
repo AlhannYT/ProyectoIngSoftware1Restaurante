@@ -29,10 +29,12 @@ namespace Proyecto_restaurante
         public int MesaID;
         private int SalaID = 0;
         private int EventoID = 0;
-        private int Origen = 2; // 2 = reserva, 3 = evento
+        private int Origen = 0; // 2 = reserva, 3 = evento
         private int? ClienteIDEvento = null;
         private List<int> mesasSeleccionadasEvento = new List<int>();
+        private List<int> mesasSeleccionadasReserva = new List<int>();
         private Dictionary<int, decimal> preciosMesasSeleccionadasEvento = new Dictionary<int, decimal>();
+        private Dictionary<int, decimal> preciosMesasSeleccionadasReserva = new Dictionary<int, decimal>();
         private int estadoBuscarSalaEvento = 1;
         private bool panelSalaEventoVisible = false;
 
@@ -49,12 +51,14 @@ namespace Proyecto_restaurante
 
         string conexionString = ConexionBD.ConexionSQL();
 
-        private class MesaInfoReserva
+        public class MesaInfoReserva
         {
             public int Id { get; set; }
             public bool Ocupado { get; set; }
             public bool Reservado { get; set; }
+            public decimal Precio { get; set; }
         }
+
         private int? ObtenerIdReservaSeleccionada()
         {
             if (ReservacionMesasDGV.CurrentRow == null ||
@@ -103,6 +107,13 @@ namespace Proyecto_restaurante
 
             var info = botonActivo.Tag as MesaInfoReserva;
             idMesaSeleccionada = (info != null) ? info.Id : -1;
+
+            if (info != null)
+                labelSubtotalRES.Text = info.Precio.ToString("N2");
+            else
+                labelSubtotalRES.Text = "0.00";
+
+            ActualizarResumenMesasReserva();
         }
 
         private void Reservacion_Load(object sender, EventArgs e)
@@ -128,7 +139,6 @@ namespace Proyecto_restaurante
             fecfin.Value = DateTime.Today;
             CargarReservas();
 
-            CargarSalaCBX();
             PrepararNuevoEvento();
 
             CargarMesasDisponiblesEvento();
@@ -287,74 +297,94 @@ namespace Proyecto_restaurante
         {
             string conexionString = ConexionBD.ConexionSQL();
 
+            int? idSalaFiltro = null;
+
+            if (salacmbx2.SelectedValue != null &&
+                int.TryParse(salacmbx2.SelectedValue.ToString(), out int tmpSala) &&
+                tmpSala > 0)
+            {
+                idSalaFiltro = tmpSala;
+            }
+
             using (SqlConnection conexion = new SqlConnection(conexionString))
             {
                 conexion.Open();
 
                 string sql = @"
                 SELECT 
-                m.IdMesa,
-                m.IdSala,
-                s.Nombre AS NombreSala,
-                m.Numero,
-                m.Capacidad,
-                m.Ocupado,
-                ISNULL(m.Reservado,0) AS Reservado
+                    m.IdMesa,
+                    m.IdSala,
+                    s.Nombre AS NombreSala,
+                    m.Numero,
+                    m.Capacidad,
+                    m.Ocupado,
+                    ISNULL(m.PrecReserva, 0) AS PrecReserva,
+                    ISNULL(m.Reservado,0) AS Reservado
                 FROM Mesa m
                 INNER JOIN Sala s ON m.IdSala = s.IdSala
+                WHERE m.Ocupado = 0
+                  AND (@IdSala IS NULL OR m.IdSala = @IdSala)
                 ORDER BY s.Nombre, m.Numero;";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conexion))
-                using (SqlDataReader dr = cmd.ExecuteReader())
                 {
-                    flowmesa.Controls.Clear();
-                    botonActivo = null;
-                    idMesaSeleccionada = -1;
+                    cmd.Parameters.AddWithValue("@IdSala", (object)idSalaFiltro ?? DBNull.Value);
 
-                    while (dr.Read())
+                    using (SqlDataReader dr = cmd.ExecuteReader())
                     {
-                        int idMesa = Convert.ToInt32(dr["IdMesa"]);
-                        int numero = Convert.ToInt32(dr["Numero"]);
-                        string nombreSala = dr["NombreSala"].ToString();
-                        int capacidad = Convert.ToInt32(dr["Capacidad"]);
-                        bool ocupado = Convert.ToBoolean(dr["Ocupado"]);
-                        bool reservado = Convert.ToBoolean(dr["Reservado"]);
+                        flowmesa.Controls.Clear();
+                        botonActivo = null;
+                        idMesaSeleccionada = -1;
 
-                        Button btnMesa = new Button
+                        while (dr.Read())
                         {
-                            Width = 150,
-                            Height = 100,
-                            Margin = new Padding(10),
-                            TextAlign = ContentAlignment.MiddleCenter,
-                            Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                            Cursor = Cursors.Hand,
-                            Tag = new MesaInfoReserva
+                            int idMesa = Convert.ToInt32(dr["IdMesa"]);
+                            int numero = Convert.ToInt32(dr["Numero"]);
+                            string nombreSala = dr["NombreSala"].ToString();
+                            int capacidad = Convert.ToInt32(dr["Capacidad"]);
+                            decimal precioReserva = Convert.ToDecimal(dr["PrecReserva"]);
+                            bool ocupado = Convert.ToBoolean(dr["Ocupado"]);
+                            bool reservado = Convert.ToBoolean(dr["Reservado"]);
+
+                            Button btnMesa = new Button
                             {
-                                Id = idMesa,
-                                Ocupado = ocupado,
-                                Reservado = reservado
-                            }
-                        };
+                                Width = 150,
+                                Height = 120,
+                                Margin = new Padding(10),
+                                TextAlign = ContentAlignment.MiddleCenter,
+                                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                                Cursor = Cursors.Hand,
+                                Tag = new MesaInfoReserva
+                                {
+                                    Id = idMesa,
+                                    Ocupado = ocupado,
+                                    Reservado = reservado,
+                                    Precio = precioReserva
+                                }
+                            };
 
-                        if (ocupado)
-                            btnMesa.BackColor = Color.LightCoral;
-                        else if (reservado)
-                            btnMesa.BackColor = Color.MediumPurple;
-                        else
-                            btnMesa.BackColor = Color.LightGreen;
+                            if (ocupado)
+                                btnMesa.BackColor = Color.LightCoral;
+                            else if (reservado)
+                                btnMesa.BackColor = Color.MediumPurple;
+                            else
+                                btnMesa.BackColor = Color.LightGreen;
 
-                        btnMesa.Text =
-                            $"Mesa #{numero}\n" +
-                            $"Sala: {nombreSala}\n" +
-                            $"Asientos: {capacidad}";
+                            btnMesa.Text =
+                                $"Mesa #{numero}\n" +
+                                $"Sala: {nombreSala}\n" +
+                                $"Asientos: {capacidad}\n" +
+                                $"Precio: RD$ {precioReserva:N2}";
 
-                        btnMesa.Click += BtnMesa_Click;
+                            btnMesa.Click += BtnMesa_Click;
 
-                        flowmesa.Controls.Add(btnMesa);
+                            flowmesa.Controls.Add(btnMesa);
+                        }
                     }
                 }
             }
         }
+
         private void LiberarReservasVencidas()
         {
             string conexionString = ConexionBD.ConexionSQL();
@@ -426,6 +456,15 @@ namespace Proyecto_restaurante
                 return;
             }
 
+            decimal totalReserva = 0m;
+            string textoTotal = labelTotalRES.Text.Replace("RD$", "").Trim();
+
+            if (!decimal.TryParse(textoTotal, NumberStyles.Any, CultureInfo.CurrentCulture, out totalReserva))
+            {
+                MessageBox.Show("El total de la reserva no tiene un formato válido.");
+                return;
+            }
+
             int idMesa = idMesaSeleccionada;
             DateTime fechaReserva = fechaResv.Value;
             int personas = (int)CantidadPersonasNUD.Value;
@@ -465,11 +504,11 @@ namespace Proyecto_restaurante
                     if (ReservaID == 0)
                     {
                         string sqlInsert = @"
-                                INSERT INTO Reserva
-                                (IdMesa, FechaHora, Personas, Cliente, Estado, CreadoEn)
-                                VALUES
-                                (@IdMesa, @FechaHora, @Personas, @Cliente, 'solicitada', SYSDATETIME());
-                                SELECT CAST(SCOPE_IDENTITY() AS int);";
+                        INSERT INTO Reserva
+                        (IdMesa, FechaHora, Personas, Cliente, Estado, CreadoEn, TotalRes)
+                        VALUES
+                        (@IdMesa, @FechaHora, @Personas, @Cliente, 'solicitada', SYSDATETIME(), @TotalRes);
+                        SELECT CAST(SCOPE_IDENTITY() AS int);";
 
                         using (SqlCommand cmd = new SqlCommand(sqlInsert, con, trans))
                         {
@@ -477,6 +516,10 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@FechaHora", fechaReserva);
                             cmd.Parameters.AddWithValue("@Personas", personas);
                             cmd.Parameters.AddWithValue("@Cliente", nombreCliente);
+
+                            cmd.Parameters.Add("@TotalRes", SqlDbType.Decimal).Value = totalReserva;
+                            cmd.Parameters["@TotalRes"].Precision = 10;
+                            cmd.Parameters["@TotalRes"].Scale = 2;
 
                             ReservaID = (int)cmd.ExecuteScalar();
                             txtidreserva.Text = ReservaID.ToString();
@@ -496,12 +539,13 @@ namespace Proyecto_restaurante
                     else
                     {
                         string sqlUpdate = @"
-                            UPDATE Reserva
-                            SET IdMesa    = @IdMesa,
+                        UPDATE Reserva
+                        SET IdMesa    = @IdMesa,
                             FechaHora = @FechaHora,
                             Personas  = @Personas,
-                            Cliente   = @Cliente
-                            WHERE IdReserva = @IdReserva;";
+                            Cliente   = @Cliente,
+                            TotalRes  = @TotalRes
+                        WHERE IdReserva = @IdReserva;";
 
                         using (SqlCommand cmd = new SqlCommand(sqlUpdate, con, trans))
                         {
@@ -510,6 +554,11 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@FechaHora", fechaReserva);
                             cmd.Parameters.AddWithValue("@Personas", personas);
                             cmd.Parameters.AddWithValue("@Cliente", nombreCliente);
+
+                            cmd.Parameters.Add("@TotalRes", SqlDbType.Decimal).Value = totalReserva;
+                            cmd.Parameters["@TotalRes"].Precision = 10;
+                            cmd.Parameters["@TotalRes"].Scale = 2;
+
                             cmd.ExecuteNonQuery();
                         }
                     }
@@ -527,7 +576,6 @@ namespace Proyecto_restaurante
                 }
             }
         }
-
 
         private void buscarclientebtn_Click(object sender, EventArgs e)
         {
@@ -904,7 +952,6 @@ namespace Proyecto_restaurante
             }
         }
 
-
         private void RegresarBtn_Click(object sender, EventArgs e)
         {
             PanelClientes.Visible = false;
@@ -968,8 +1015,6 @@ namespace Proyecto_restaurante
 
         private void CargarMesasDisponiblesEvento(string filtro = "")
         {
-            string conexionString = ConexionBD.ConexionSQL();
-
             DateTime fechaIni = FechaInicialDTP.Value;
             DateTime fechaFin = FechaFinDTP.Value;
 
@@ -1086,7 +1131,8 @@ namespace Proyecto_restaurante
                             btn.Text =
                                 $"Mesa #{numero}\n" +
                                 $"Sala: {nombreSala}\n" +
-                                $"Asientos: {capacidad}";
+                                $"Asientos: {capacidad}\n" + 
+                                $"Precio: {precioMesa}";
 
                             btn.Click += BtnMesaEvento_Click;
                             EventoMesasP.Controls.Add(btn);
@@ -1094,6 +1140,24 @@ namespace Proyecto_restaurante
                     }
                 }
             }
+        }
+
+        private void ActualizarResumenMesasReserva()
+        {
+            decimal subtotal = 0m;
+
+            if (botonActivo != null)
+            {
+                var info = botonActivo.Tag as MesaInfoReserva;
+                if (info != null)
+                    subtotal = info.Precio;
+            }
+
+            decimal itbis = subtotal * 0.18m;
+            decimal total = subtotal + itbis;
+
+            labelSubtotalRES.Text = subtotal.ToString("N2");
+            labelTotalRES.Text = total.ToString("N2");
         }
 
         private void ActualizarResumenMesasEvento()
@@ -1393,12 +1457,12 @@ namespace Proyecto_restaurante
 
         private void salacmbx2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            mesasSeleccionadasEvento.Clear();
-            preciosMesasSeleccionadasEvento.Clear();
+            mesasSeleccionadasReserva.Clear();
+            preciosMesasSeleccionadasReserva.Clear();
 
-            ActualizarResumenMesasEvento();
+            ActualizarResumenMesasReserva();
 
-            CargarMesasDisponiblesEvento(BuscarMesaTxtB.Text.Trim());
+            CargarMesasDisponiblesReserva();
         }
 
         private void buscarBTN_Click(object sender, EventArgs e)
@@ -1549,7 +1613,6 @@ namespace Proyecto_restaurante
             {
                 devueltatxt.Text = "0.00";
             }
-
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -1566,10 +1629,17 @@ namespace Proyecto_restaurante
 
         private void EfectuarReserva()
         {
-            int? id = ObtenerIdReservaSeleccionada();
-            if (id == null)
+            int? idRes = ObtenerIdReservaSeleccionada();
+            if (idRes == null)
             {
-                MessageBox.Show("Seleccione una reservación en la lista.");
+                MessageBox.Show("Seleccione una Reservación en la lista.");
+                return;
+            }
+
+            int? idEv = ObtenerIdEventoSeleccionado();
+            if (idEv == null)
+            {
+                MessageBox.Show("Seleccione un Evento en la lista.");
                 return;
             }
 
@@ -1587,7 +1657,7 @@ namespace Proyecto_restaurante
                         string sqlGetMesa = "SELECT IdMesa FROM Reserva WHERE IdReserva = @Id;";
                         using (SqlCommand cmdGet = new SqlCommand(sqlGetMesa, con, tran))
                         {
-                            cmdGet.Parameters.AddWithValue("@Id", id.Value);
+                            cmdGet.Parameters.AddWithValue("@Id", idRes.Value);
                             object res = cmdGet.ExecuteScalar();
 
                             if (res != null && res != DBNull.Value)
@@ -1597,7 +1667,7 @@ namespace Proyecto_restaurante
                         string sqlReserva = "UPDATE Reserva SET Estado = 'confirmada' WHERE IdReserva = @Id;";
                         using (SqlCommand cmd = new SqlCommand(sqlReserva, con, tran))
                         {
-                            cmd.Parameters.AddWithValue("@Id", id.Value);
+                            cmd.Parameters.AddWithValue("@Id", idRes.Value);
                             cmd.ExecuteNonQuery();
                         }
 
@@ -1619,7 +1689,7 @@ namespace Proyecto_restaurante
                         string sqlEvento = "UPDATE Evento SET Estado = 'confirmado' WHERE IdEvento = @Id;";
                         using (SqlCommand cmd = new SqlCommand(sqlEvento, con, tran))
                         {
-                            cmd.Parameters.AddWithValue("@Id", id.Value);
+                            cmd.Parameters.AddWithValue("@Id", idEv.Value);
                             cmd.ExecuteNonQuery();
                         }
 
@@ -1634,7 +1704,7 @@ namespace Proyecto_restaurante
 
                         using (SqlCommand cmdMesa = new SqlCommand(sqlMesasEvento, con, tran))
                         {
-                            cmdMesa.Parameters.AddWithValue("@Id", id.Value);
+                            cmdMesa.Parameters.AddWithValue("@Id", idEv.Value);
                             cmdMesa.ExecuteNonQuery();
                         }
 
@@ -1660,9 +1730,8 @@ namespace Proyecto_restaurante
 
             CargarReservas(txtbusquedareserva.Text);
             CargarMesasDisponiblesReserva();
-
+            Origen = 0;
         }
-
 
         private void RegistrarPago(SqlConnection conexion, SqlTransaction trans)
         {
@@ -1716,7 +1785,7 @@ namespace Proyecto_restaurante
 
                 SqlCommand cmd = new SqlCommand(@"
                 INSERT INTO DetallePago (IdPedido, TipoDetalle, Efectivo, Devuelta, Tarjeta, TarjetaNombre, Transferencia, Banco, Total, Estado, Referencia, Origen)
-                VALUES (NULL, @TipoDetalle, @Efectivo, @Devuelta, @Tarjeta, @TarjetaNombre, @Transferencia, @Banco, @Total, @Estado, @Referencia, 1)",
+                VALUES (NULL, @TipoDetalle, @Efectivo, @Devuelta, @Tarjeta, @TarjetaNombre, @Transferencia, @Banco, @Total, @Estado, @Referencia, @Origen)",
                 conexion, trans);
 
                 cmd.Parameters.AddWithValue("@TipoDetalle", tipoSQL);
