@@ -85,9 +85,13 @@ namespace Proyecto_restaurante
                 return;
             }
 
-
-            string estado = estadomesa.Checked ? "libre" : "inactiva";
-            bool ocupada = ocupadochk.Checked;
+            if (!int.TryParse(precioReservatxt.Text, out int precioRes) || precioRes <= 0)
+            {
+                MessageBox.Show("El precio solo admite números > 0.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                precioReservatxt.Focus();
+                return;
+            }
 
             string conexionString = ConexionBD.ConexionSQL();
 
@@ -100,16 +104,18 @@ namespace Proyecto_restaurante
                     if (MesaID == 0)
                     {
                         string queryInsertar = @"
-                        INSERT INTO Mesa (IdSala, Numero, Capacidad, Estado, Ocupado, Reservado, IdGrupo, EsPrincipal)
-                        VALUES (@IdSala, @Numero, @Capacidad, @Estado, @Ocupado, 0, 0, 0);";
+                        INSERT INTO Mesa (IdSala, Numero, Capacidad, Estado, Ocupado, Reservado, IdGrupo, EsPrincipal, ParaReserva, PrecReserva)
+                        VALUES (@IdSala, @Numero, @Capacidad, @Estado, @Ocupado, 0, 0, 0, @EsReserva, @PrecRes);";
 
                         using (SqlCommand cmd = new SqlCommand(queryInsertar, conexion))
                         {
                             cmd.Parameters.AddWithValue("@IdSala", idSala);
                             cmd.Parameters.AddWithValue("@Numero", numeroMesa);
                             cmd.Parameters.AddWithValue("@Capacidad", capacidad);
-                            cmd.Parameters.AddWithValue("@Estado", estado);
-                            cmd.Parameters.AddWithValue("@Ocupado", ocupada ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@Estado", estadochk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@Ocupado", ocupadochk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@EsReserva", esResvchk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@PrecRes", precioRes);
 
                             int rows = cmd.ExecuteNonQuery();
                             if (rows > 0)
@@ -132,7 +138,9 @@ namespace Proyecto_restaurante
                         Numero   = @Numero,
                         Capacidad= @Capacidad,
                         Estado   = @Estado,
-                        Ocupado  = @Ocupado
+                        Ocupado  = @Ocupado,
+                        ParaReserva = @EsReserva,
+                        PrecReserva = @PrecRes
                         WHERE IdMesa = @IdMesa;";
 
                         using (SqlCommand cmd = new SqlCommand(queryActualizar, conexion))
@@ -141,8 +149,10 @@ namespace Proyecto_restaurante
                             cmd.Parameters.AddWithValue("@IdSala", idSala);
                             cmd.Parameters.AddWithValue("@Numero", numeroMesa);
                             cmd.Parameters.AddWithValue("@Capacidad", capacidad);
-                            cmd.Parameters.AddWithValue("@Estado", estado);
-                            cmd.Parameters.AddWithValue("@Ocupado", ocupada ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@Estado", estadochk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@Ocupado", ocupadochk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@EsReserva", esResvchk.Checked ? 1 : 0);
+                            cmd.Parameters.AddWithValue("@PrecRes", precioRes);
 
                             int rows = cmd.ExecuteNonQuery();
                             if (rows > 0)
@@ -177,9 +187,11 @@ namespace Proyecto_restaurante
             txtcapacidad.Clear();
             idsalaconsulta.Clear();
             salatxt.Clear();
+            precioReservatxt.Clear();
 
             ocupadochk.Checked = false;
             estadomesa.Checked = true;
+            esResvchk.Checked = false;
 
             string conexionString = ConexionBD.ConexionSQL();
             using (SqlConnection conexion = new SqlConnection(conexionString))
@@ -218,21 +230,21 @@ namespace Proyecto_restaurante
                     }
                 }
 
+                CargarSalaCBX();
                 PrepararNuevaSala();
                 CargarSalasEnGrid();
                 PrepararNuevoEvento();
+
                 CargarMesasDisponiblesEvento();
+
                 ConfigurarDateTimePickersEvento();
+
                 FechaInicialDTP.Value = SistemaFecha.FechaActual;
                 FechaFinDTP.Value = SistemaFecha.FechaActual;
-                notatxt.Enter += notatxt_Enter;
-                notatxt.Leave += notatxt_Leave;
                 panelOrganizador.Visible = false;
                 panelOrganizador.Parent = tabEventos;
                 panelOrganizador.Anchor = AnchorStyles.None;
             }
-
-
 
             string consultaIdSala = "SELECT ISNULL(MAX(IdSala), 0) + 1 FROM Sala";
 
@@ -261,7 +273,6 @@ namespace Proyecto_restaurante
 
             CargarSalas("", false);
             PrepararNuevaSala();
-
         }
 
         private void CargarPanelMesas(
@@ -443,6 +454,8 @@ namespace Proyecto_restaurante
                 m.Ocupado,
                 m.Reservado,
                 m.Estado,
+                m.ParaReserva,
+                m.PrecReserva,
                 s.Nombre AS NombreSala
                 FROM Mesa m
                 LEFT JOIN Sala s ON m.IdSala = s.IdSala
@@ -465,17 +478,16 @@ namespace Proyecto_restaurante
 
                             txtnumeroMesa.Text = dr["Numero"].ToString();
                             txtcapacidad.Text = dr["Capacidad"].ToString();
+                            precioReservatxt.Text = dr["PrecReserva"].ToString();
 
                             bool ocupado = dr["Ocupado"] != DBNull.Value && Convert.ToBoolean(dr["Ocupado"]);
                             ocupadochk.Checked = ocupado;
 
-                            if (dr["Estado"] != DBNull.Value)
-                            {
-                                string est = dr["Estado"].ToString().Trim().ToLower();
+                            bool esreserva = dr["ParaReserva"] != DBNull.Value && Convert.ToBoolean(dr["ParaReserva"]);
+                            esResvchk.Checked = esreserva;
 
-                                bool activa = (est == "libre");
-                                estadomesa.Checked = activa;
-                            }
+                            bool estadoMesa = dr["Estado"] != DBNull.Value && Convert.ToBoolean(dr["Estado"]);
+                            estadochk.Checked = estadoMesa;
                         }
                     }
                 }
@@ -651,7 +663,6 @@ namespace Proyecto_restaurante
             if (tabladatos.Columns.Contains("Activo"))
                 tabladatos.Columns["Activo"].HeaderText = "Activo";
         }
-
 
         private void ocupadochk_CheckedChanged(object sender, EventArgs e)
         {
@@ -909,7 +920,6 @@ namespace Proyecto_restaurante
             }
         }
 
-
         private void CargarProximoIdEvento()
         {
             string conexionString = ConexionBD.ConexionSQL();
@@ -944,12 +954,42 @@ namespace Proyecto_restaurante
 
             IdSalaSelecionadaTxtB.Clear();
             NomSalaSelecTxtB.Clear();
-
-            notatxt.Text = "Escribir nota aquí...";
-            notapanel.Visible = false;
-            notatxt.ForeColor = Color.Gray;
+            notatxt.Clear();
 
             EventoMesasP.Controls.Clear();
+        }
+
+        private void CargarSalaCBX()
+        {
+            string conexionString = ConexionBD.ConexionSQL();
+
+            using (SqlConnection conexion = new SqlConnection(conexionString))
+            {
+                conexion.Open();
+
+                string sql = @"
+                    SELECT 
+                        IdSala,
+                        Nombre,
+                        Piso,
+                        Nombre + ' P' + CAST(Piso AS varchar(10)) AS TextoSala
+                    FROM Sala
+                    WHERE Activo = 1
+                    ORDER BY IdSala ASC";
+
+                using (SqlDataAdapter da = new SqlDataAdapter(sql, conexion))
+                {
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    salacmbx.DataSource = dt;
+                    salacmbx.DisplayMember = "TextoSala";
+                    salacmbx.ValueMember = "IdSala";
+                }
+            }
+
+            if (salacmbx.Items.Count > 0)
+                salacmbx.SelectedIndex = 0;
         }
 
         private void CargarMesasDisponiblesEvento(string filtro = "")
@@ -962,8 +1002,10 @@ namespace Proyecto_restaurante
             int idEventoActual = (EventoID > 0) ? EventoID : 0;
 
             int? idSalaFiltro = null;
-            if (!string.IsNullOrWhiteSpace(IdSalaSelecionadaTxtB.Text) &&
-                int.TryParse(IdSalaSelecionadaTxtB.Text, out int tmpSala))
+
+            if (salacmbx.SelectedValue != null &&
+                int.TryParse(salacmbx.SelectedValue.ToString(), out int tmpSala) &&
+                tmpSala > 0)
             {
                 idSalaFiltro = tmpSala;
             }
@@ -973,43 +1015,41 @@ namespace Proyecto_restaurante
                 conexion.Open();
 
                 string sql = @"
-        SELECT 
-            m.IdMesa,
-            m.IdSala,
-            s.Nombre AS NombreSala,
-            m.Numero,
-            m.Capacidad,
-            m.Ocupado,
-            ISNULL(m.Reservado, 0) AS Reservado, -- (Reserva normal)
+                SELECT 
+                    m.IdMesa,
+                    m.IdSala,
+                    s.Nombre AS NombreSala,
+                    m.Numero,
+                    m.Capacidad,
+                    m.Ocupado,
+                    ISNULL(m.Reservado, 0) AS Reservado, -- (Reserva normal)
 
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM EventoMesa em
-                    INNER JOIN Evento e ON e.IdEvento = em.IdEvento
-                    WHERE em.IdMesa = m.IdMesa
-                      AND e.IdEvento <> @IdEventoActual
-                      AND e.Estado <> 'cancelado'
-                      AND @FechaIni <= e.FechaFin
-                      AND @FechaFin >= e.FechaInicio
-                )
-                THEN 1 ELSE 0
-            END AS ReservadaEvento
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM EventoMesa em
+                            INNER JOIN Evento e ON e.IdEvento = em.IdEvento
+                            WHERE em.IdMesa = m.IdMesa
+                              AND e.IdEvento <> @IdEventoActual
+                              AND e.Estado <> 'cancelado'
+                              AND @FechaIni <= e.FechaFin
+                              AND @FechaFin >= e.FechaInicio
+                        )
+                        THEN 1 ELSE 0
+                    END AS ReservadaEvento
 
-        FROM Mesa m
-        INNER JOIN Sala s ON m.IdSala = s.IdSala
-        WHERE 1 = 1
-          AND (@IdSala IS NULL OR m.IdSala = @IdSala)
-        ";
+                    FROM Mesa m
+                    INNER JOIN Sala s ON m.IdSala = s.IdSala
+                    WHERE 1 = 1 AND (@IdSala IS NULL OR m.IdSala = @IdSala)";
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
                     sql += @"
-            AND (
-                CAST(m.IdMesa AS varchar(10)) LIKE @filtro
-                OR CAST(m.Numero AS varchar(10)) LIKE @filtro
-                OR s.Nombre LIKE @filtro
-            )";
+                    AND (
+                        CAST(m.IdMesa AS varchar(10)) LIKE @filtro
+                        OR CAST(m.Numero AS varchar(10)) LIKE @filtro
+                        OR s.Nombre LIKE @filtro
+                    )";
                 }
 
                 sql += " ORDER BY s.Nombre, m.Numero;";
@@ -1121,8 +1161,6 @@ namespace Proyecto_restaurante
             }
         }
 
-
-
         private void BuscarMesaTxtB_TextChanged(object sender, EventArgs e)
         {
             string filtro = BuscarMesaTxtB.Text.Trim();
@@ -1184,8 +1222,12 @@ namespace Proyecto_restaurante
             }
 
             int? idSalaEvento = null;
-            if (!string.IsNullOrWhiteSpace(IdSalaSelecionadaTxtB.Text) && int.TryParse(IdSalaSelecionadaTxtB.Text, out int tmpSala))
+
+            if (salacmbx.SelectedValue != null &&
+                int.TryParse(salacmbx.SelectedValue.ToString(), out int tmpSala))
+            {
                 idSalaEvento = tmpSala;
+            }
 
             string organizador = NomCompletoOrgTxtB.Text.Trim();
             string nombreEvento = NombreEventoTxt.Text.Trim();
@@ -1194,8 +1236,6 @@ namespace Proyecto_restaurante
             DateTime fechaFin = FechaFinDTP.Value;
 
             string nota = null;
-            if (!string.IsNullOrWhiteSpace(notatxt.Text) && notatxt.Text != "Escribir nota aquí...")
-                nota = notatxt.Text.Trim();
 
             string conexionString = ConexionBD.ConexionSQL();
 
@@ -1224,7 +1264,7 @@ namespace Proyecto_restaurante
                                     if (ocupada || reservada)
                                     {
                                         trans.Rollback();
-                                        MessageBox.Show("Hay mesas seleccionadas que ya están ocupadas o reservadas. Actualice y elija otras.");
+                                        MessageBox.Show("La mesa seleccionada ya está reservada. Elegir otra");
                                         CargarMesasDisponiblesEvento(BuscarMesaTxtB.Text.Trim());
                                         return;
                                     }
@@ -1233,19 +1273,45 @@ namespace Proyecto_restaurante
                         }
                     }
 
+                    foreach (int idMesa in mesasSeleccionadasEvento)
+                    {
+                        string sqlSalaMesa = "SELECT IdSala FROM Mesa WHERE IdMesa = @IdMesa;";
+                        using (SqlCommand cmdSala = new SqlCommand(sqlSalaMesa, conexion, trans))
+                        {
+                            cmdSala.Parameters.AddWithValue("@IdMesa", idMesa);
+
+                            object result = cmdSala.ExecuteScalar();
+                            if (result == null || result == DBNull.Value)
+                            {
+                                trans.Rollback();
+                                MessageBox.Show("No se pudo determinar la sala de una de las mesas seleccionadas.");
+                                return;
+                            }
+
+                            int idSalaMesa = Convert.ToInt32(result);
+
+                            if (idSalaEvento == null)
+                            {
+                                idSalaEvento = idSalaMesa;
+                            }
+                            else if (idSalaEvento != idSalaMesa)
+                            {
+                                trans.Rollback();
+                                MessageBox.Show("Las mesas seleccionadas pertenecen a salas distintas. Seleccione mesas de una sola sala.");
+                                return;
+                            }
+                        }
+                    }
+
                     // 2) INSERT / UPDATE Evento
                     if (EventoID == 0)
                     {
                         string sqlInsert = @"
-                INSERT INTO Evento
-                (Organizador, FechaInicio, FechaFin, PersonasEstimadas,
-                 IdSala, MontajeMin, DesmontajeMin, Estado, CreadoEn,
-                 NombreEvento, IdCliente, Nota)
-                VALUES
-                (@Organizador, @FechaInicio, @FechaFin, @Personas,
-                 @IdSala, @MontajeMin, @DesmontajeMin, @Estado, SYSDATETIME(),
-                 @NombreEvento, @IdCliente, @Nota);
-                SELECT CAST(SCOPE_IDENTITY() AS int);";
+                        INSERT INTO Evento
+                        (Organizador, FechaInicio, FechaFin, PersonasEstimadas, IdSala, MontajeMin, DesmontajeMin, Estado, CreadoEn, NombreEvento, IdCliente, Nota)
+                        VALUES
+                        (@Organizador, @FechaInicio, @FechaFin, @Personas, @IdSala, @MontajeMin, @DesmontajeMin, @Estado, SYSDATETIME(), @NombreEvento, @IdCliente, @Nota);
+                        SELECT CAST(SCOPE_IDENTITY() AS int);";
 
                         using (SqlCommand cmd = new SqlCommand(sqlInsert, conexion, trans))
                         {
@@ -1338,7 +1404,6 @@ namespace Proyecto_restaurante
                 }
             }
         }
-
 
         private void BuscarOrganizadorBtn_Click(object sender, EventArgs e)
         {
@@ -1599,15 +1664,7 @@ namespace Proyecto_restaurante
             SalaConEventoDGV.CurrentCell = SalaConEventoDGV.Rows[e.RowIndex].Cells[0];
             DesplegarBtn_Click(sender, EventArgs.Empty);
         }
-        private void NotaBtn_Click(object sender, EventArgs e)
-        {
-            notapanel.Visible = !notapanel.Visible;
-            if (notapanel.Visible)
-            {
-                notapanel.BringToFront();
-                notatxt.Focus();
-            }
-        }
+
         private void notatxt_Enter(object sender, EventArgs e)
         {
             if (notatxt.Text == "Escribir nota aquí...")
@@ -1672,6 +1729,25 @@ namespace Proyecto_restaurante
         {
             CargarMesasDisponiblesEvento(BuscarMesaTxtB.Text.Trim());
         }
-    }
 
+        private void esResvchk_CheckedChanged(object sender, EventArgs e)
+        {
+            if (esResvchk.Checked == true)
+            {
+                esResvchk.Text = "Si";
+                esResvchk.ForeColor = Color.Lime;
+            }
+            else
+            {
+                esResvchk.Text = "No";
+                esResvchk.ForeColor = Color.Red;
+            }
+        }
+
+        private void salacmbx_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CargarMesasDisponiblesEvento(BuscarMesaTxtB.Text.Trim());
+            mesasSeleccionadasEvento.Clear();
+        }
+    }
 }

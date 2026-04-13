@@ -1238,6 +1238,9 @@ namespace Proyecto_restaurante
                 restante1txt.Text = TotalRestante.ToString("N2");
                 restante2txt.Text = TotalRestante.ToString("N2");
                 restante3txt.Text = TotalRestante.ToString("N2");
+                efectivotxt.Text = TotalPedido.ToString("N2");
+                tarjetaMonto.Text = TotalPedido.ToString("N2");
+                transfMonto.Text = TotalPedido.ToString("N2");
             }
         }
 
@@ -1967,7 +1970,9 @@ namespace Proyecto_restaurante
             devueltatxt.Text = devueltaCalc.ToString("N2");
 
             efectivotxt.Clear();
+            button9.Enabled = true;
             RecalcularTotalesPago();
+            RecargarRestante();
         }
 
         private void MostrarDevuelta()
@@ -2117,8 +2122,8 @@ namespace Proyecto_restaurante
                 }
 
                 SqlCommand cmd = new SqlCommand(@"
-                INSERT INTO DetallePago (IdPedido, TipoDetalle, Efectivo, Devuelta, Tarjeta, TarjetaNombre, Transferencia, Banco, Total, Estado, Referencia)
-                VALUES (@IdPedido, @TipoDetalle, @Efectivo, @Devuelta, @Tarjeta, @TarjetaNombre, @Transferencia, @Banco, @Total, @Estado, @Referencia)",
+                INSERT INTO DetallePago (IdPedido, TipoDetalle, Efectivo, Devuelta, Tarjeta, TarjetaNombre, Transferencia, Banco, Total, Estado, Referencia, Origen)
+                VALUES (@IdPedido, @TipoDetalle, @Efectivo, @Devuelta, @Tarjeta, @TarjetaNombre, @Transferencia, @Banco, @Total, @Estado, @Referencia, 1)",
                 conexion, trans);
 
                 cmd.Parameters.AddWithValue("@IdPedido", PedidoID);
@@ -2267,6 +2272,7 @@ namespace Proyecto_restaurante
             if (detallePagoDT.Rows.Count == 0)
             {
                 MessageBox.Show("No hay detalles para eliminar.");
+                button9.Enabled = false;
                 return;
             }
 
@@ -3740,6 +3746,54 @@ namespace Proyecto_restaurante
         private void txtprecioproducto_Leave(object sender, EventArgs e)
         {
             txtprecioproducto_KeyDown(sender, new KeyEventArgs(Keys.Enter));
+        }
+
+        private void RecargarRestante()
+        {
+            if(restante1txt.Text == "0.00" || restante2txt.Text == "0.00" || restante3txt.Text == "0.00")
+            {
+                efectivotxt.Clear();
+                tarjetaMonto.Clear();
+                transfMonto.Clear();
+
+                aplicarefectivo.Enabled = false;
+                aplicartarjeta.Enabled = false;
+                aplicartransf.Enabled = false;
+            }
+            else
+            {   
+                aplicarefectivo.Enabled = true;
+                aplicartarjeta.Enabled = true;
+                aplicartransf.Enabled = true;
+            }
+
+            if (restante1txt.Text == TotalAPagar.Text || restante2txt.Text == TotalAPagar.Text || restante2txt.Text == TotalAPagar.Text)
+            {
+                button9.Enabled = false;
+            }
+            else
+            {
+                button9.Enabled = true;
+            }
+
+            efectivotxt.Text = restante1txt.Text;
+            tarjetaMonto.Text = restante2txt.Text;
+            transfMonto.Text = restante3txt.Text;
+        }
+
+        private void restante1txt_TextChanged(object sender, EventArgs e)
+        {
+            RecargarRestante();
+        }
+
+        private void restante2txt_TextChanged(object sender, EventArgs e)
+        {
+            RecargarRestante();
+        }
+
+        private void restante3txt_TextChanged(object sender, EventArgs e)
+        {
+            RecargarRestante();
         }
     }
 }
