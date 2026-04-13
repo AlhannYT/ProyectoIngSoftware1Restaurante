@@ -298,7 +298,7 @@
             tabPage1.Location = new Point(4, 30);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(1722, 736);
+            tabPage1.Size = new Size(1562, 506);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Reservaciones";
             // 
@@ -975,7 +975,7 @@
             tabEventos.Controls.Add(LimpiarFormEventoBtn);
             tabEventos.Location = new Point(4, 30);
             tabEventos.Name = "tabEventos";
-            tabEventos.Size = new Size(1722, 736);
+            tabEventos.Size = new Size(1562, 506);
             tabEventos.TabIndex = 2;
             tabEventos.Text = "Eventos";
             // 
@@ -1854,6 +1854,7 @@
             restante1txt.Name = "restante1txt";
             restante1txt.Size = new Size(97, 29);
             restante1txt.TabIndex = 0;
+            restante1txt.TextChanged += restante1txt_TextChanged;
             // 
             // label16
             // 
@@ -1921,6 +1922,7 @@
             restante2txt.Name = "restante2txt";
             restante2txt.Size = new Size(97, 29);
             restante2txt.TabIndex = 15;
+            restante2txt.TextChanged += restante2txt_TextChanged;
             // 
             // tarjetacmbx
             // 
@@ -2019,6 +2021,7 @@
             restante3txt.Name = "restante3txt";
             restante3txt.Size = new Size(97, 29);
             restante3txt.TabIndex = 82;
+            restante3txt.TextChanged += restante3txt_TextChanged;
             // 
             // transfMonto
             // 
@@ -2186,6 +2189,7 @@
             finalizarbtn.TabIndex = 9;
             finalizarbtn.Text = "Finalizar";
             finalizarbtn.UseVisualStyleBackColor = true;
+            finalizarbtn.Click += finalizarbtn_Click;
             // 
             // panel12
             // 
