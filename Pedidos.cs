@@ -1927,7 +1927,6 @@ namespace Proyecto_restaurante
 
         private List<PagoEfectivoInfo> pagosEfectivo = new List<PagoEfectivoInfo>();
 
-
         private void aplicarefectivo_Click(object sender, EventArgs e)
         {
             if (!decimal.TryParse(efectivotxt.Text, out decimal montoDado))
