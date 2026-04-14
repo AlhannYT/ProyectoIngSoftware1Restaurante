@@ -1131,7 +1131,7 @@ namespace Proyecto_restaurante
                             btn.Text =
                                 $"Mesa #{numero}\n" +
                                 $"Sala: {nombreSala}\n" +
-                                $"Asientos: {capacidad}\n" + 
+                                $"Asientos: {capacidad}\n" +
                                 $"Precio: {precioMesa}";
 
                             btn.Click += BtnMesaEvento_Click;
@@ -2029,6 +2029,54 @@ namespace Proyecto_restaurante
 
             devueltapanel.Visible = false;
             devueltapanel.Location = new Point(0, 0);
+        }
+
+        private void agregarPlatos_Click(object sender, EventArgs e)
+        {
+            panelPlatos.Visible = !panelPlatos.Visible;
+
+            if (panelPlatos.Visible)
+            {
+                panelPlatos.BringToFront();
+                panelPlatos.Location = new Point(0, 0);
+                //txtbuscador.Text = "";
+            }
+        }
+
+        private void salirPlatos_Click(object sender, EventArgs e)
+        {
+            panelproducto.Visible = false;
+            panelPlatos.Visible = false;
+
+            if (detalleorden.CurrentRow != null)
+                detalleorden.ClearSelection();
+
+            if (tablapanelproducto.CurrentRow != null)
+                tablapanelproducto.ClearSelection();
+        }
+
+        private void adicionesBtn_Click(object sender, EventArgs e)
+        {
+            panelAdiciones.Visible = !panelAdiciones.Visible;
+
+            if (panelAdiciones.Visible)
+            {
+                panelAdiciones.BringToFront();
+                panelAdiciones.Location = new Point(0, 0);
+                //txtbuscador.Text = "";
+            }
+        }
+
+        private void salirAdi_Click(object sender, EventArgs e)
+        {
+            panelAdiciones.Visible = false;
+            panelArticulos.Visible = false;
+
+            if (articulosDGV.CurrentRow != null)
+                articulosDGV.ClearSelection();
+
+            if (detalleOrdenAdicion.CurrentRow != null)
+                detalleOrdenAdicion.ClearSelection();
         }
     }
 }
