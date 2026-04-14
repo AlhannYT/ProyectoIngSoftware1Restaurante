@@ -11,11 +11,12 @@ namespace Proyecto_restaurante
         public static string CrearBaseDatos = @"
             USE [master]
 			GO
-			/****** Object:  Database [GloriaRestaurant]    Script Date: 8/4/2026 1:44:22 a. m. ******/
 			IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'GloriaRestaurant')
 			BEGIN
 				CREATE DATABASE GloriaRestaurant;
 			END
+			GO
+			ALTER DATABASE [GloriaRestaurant] SET COMPATIBILITY_LEVEL = 160
 			GO
 			IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
 			begin
@@ -90,10 +91,10 @@ namespace Proyecto_restaurante
 			GO
 			USE [GloriaRestaurant]
 			GO
-			/****** Object:  User [Usuario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  User [Usuario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			CREATE USER [Usuario] WITHOUT LOGIN WITH DEFAULT_SCHEMA=[dbo]
 			GO
-			/****** Object:  Table [dbo].[Caja]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Caja]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -109,7 +110,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[CategoriaProducto]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[CategoriaProducto]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -128,7 +129,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Cliente]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Cliente]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -144,7 +145,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Comanda]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Comanda]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -163,7 +164,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Compra]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Compra]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -184,7 +185,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Comprobantes]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Comprobantes]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -200,7 +201,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Configuracion]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Configuracion]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -220,7 +221,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ConfiguracionSistema]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ConfiguracionSistema]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -234,7 +235,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Departamento]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Departamento]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -253,7 +254,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[DetalleCompra]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[DetalleCompra]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -271,14 +272,14 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[DetallePago]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[DetallePago]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
 			GO
 			CREATE TABLE [dbo].[DetallePago](
 				[IdPago] [int] IDENTITY(1,1) NOT NULL,
-				[IdPedido] [int] NOT NULL,
+				[IdPedido] [int] NULL,
 				[TipoDetalle] [varchar](20) NULL,
 				[Efectivo] [decimal](10, 2) NULL,
 				[Devuelta] [decimal](10, 2) NULL,
@@ -289,13 +290,14 @@ namespace Proyecto_restaurante
 				[Total] [decimal](10, 2) NOT NULL,
 				[Estado] [bit] NOT NULL,
 				[Referencia] [varchar](30) NULL,
+				[Origen] [int] NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdPago] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[DetallePedido]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[DetallePedido]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -314,7 +316,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Empleado]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Empleado]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -338,7 +340,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Entrega]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Entrega]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -359,7 +361,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Evento]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Evento]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -368,7 +370,6 @@ namespace Proyecto_restaurante
 				[IdEvento] [int] IDENTITY(1,1) NOT NULL,
 				[Organizador] [varchar](120) NOT NULL,
 				[FechaInicio] [datetime2](7) NOT NULL,
-				[PersonasEstimadas] [int] NOT NULL,
 				[IdSala] [int] NULL,
 				[MontajeMin] [int] NOT NULL,
 				[DesmontajeMin] [int] NOT NULL,
@@ -378,13 +379,14 @@ namespace Proyecto_restaurante
 				[NombreEvento] [varchar](120) NOT NULL,
 				[IdCliente] [int] NULL,
 				[Nota] [varchar](150) NULL,
+				[TotalRes] [decimal](10, 2) NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdEvento] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[EventoMesa]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[EventoMesa]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -399,7 +401,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Factura]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Factura]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -423,7 +425,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Impuesto]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Impuesto]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -446,7 +448,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Ingrediente]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Ingrediente]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -467,7 +469,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Inventario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Inventario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -482,7 +484,31 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Mesa]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[LinkResenaDelivery]    Script Date: 14/4/2026 9:46:12 a. m. ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+			CREATE TABLE [dbo].[LinkResenaDelivery](
+				[IdLinkResena] [int] IDENTITY(1,1) NOT NULL,
+				[IdPedido] [int] NOT NULL,
+				[Token] [varchar](100) NOT NULL,
+				[TelefonoDestino] [varchar](20) NULL,
+				[FechaCreacion] [datetime2](7) NOT NULL,
+				[FechaUso] [datetime2](7) NULL,
+				[Expirado] [bit] NOT NULL,
+				[Usado] [bit] NOT NULL,
+			PRIMARY KEY CLUSTERED 
+			(
+				[IdLinkResena] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+			UNIQUE NONCLUSTERED 
+			(
+				[Token] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY]
+			GO
+			/****** Object:  Table [dbo].[Mesa]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -492,11 +518,13 @@ namespace Proyecto_restaurante
 				[IdSala] [int] NOT NULL,
 				[Numero] [int] NOT NULL,
 				[Capacidad] [int] NOT NULL,
-				[Estado] [varchar](20) NOT NULL,
+				[Estado] [bit] NOT NULL,
 				[Ocupado] [bit] NOT NULL,
 				[Reservado] [bit] NULL,
 				[IdGrupo] [int] NULL,
 				[EsPrincipal] [bit] NOT NULL,
+				[PrecReserva] [decimal](10, 2) NOT NULL,
+				[ParaReserva] [bit] NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdMesa] ASC
@@ -508,7 +536,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[MetodoPago]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[MetodoPago]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -527,7 +555,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[MotivoSalidaInventario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[MotivoSalidaInventario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -546,7 +574,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[MovimientosInventario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[MovimientosInventario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -567,7 +595,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Pago]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Pago]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -579,13 +607,14 @@ namespace Proyecto_restaurante
 				[Monto] [decimal](12, 2) NOT NULL,
 				[RegistradoEn] [datetime2](7) NOT NULL,
 				[Referencia] [varchar](60) NULL,
+				[Origen] [int] NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdPago] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Parametros]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Parametros]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -600,7 +629,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Pedido]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Pedido]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -619,13 +648,17 @@ namespace Proyecto_restaurante
 				[Direccion] [varchar](200) NULL,
 				[IdRepartidor] [int] NULL,
 				[Comprobante] [varchar](30) NULL,
+				[ZonaEntrega] [varchar](50) NULL,
+				[VehiculoAsignado] [varchar](20) NULL,
+				[MotivoAsignacion] [varchar](200) NULL,
+				[EstadoDelivery] [varchar](20) NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdPedido] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[PermisosUsuario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[PermisosUsuario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -644,7 +677,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Persona]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Persona]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -663,7 +696,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[PersonaDireccion]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[PersonaDireccion]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -680,7 +713,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[PersonaDocumento]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[PersonaDocumento]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -703,7 +736,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[PersonaTelefono]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[PersonaTelefono]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -726,7 +759,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ProductoImpuesto]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ProductoImpuesto]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -750,7 +783,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ProductoPrecio]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ProductoPrecio]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -769,7 +802,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ProductoTipo]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ProductoTipo]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -790,7 +823,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ProductoVenta]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ProductoVenta]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -817,7 +850,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Proveedor]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Proveedor]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -834,7 +867,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Puesto]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Puesto]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -855,7 +888,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Receta]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Receta]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -878,7 +911,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[RecetaIngrediente]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[RecetaIngrediente]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -895,7 +928,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Repartidor]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Repartidor]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -904,13 +937,37 @@ namespace Proyecto_restaurante
 				[IdRepartidor] [int] IDENTITY(1,1) NOT NULL,
 				[Nombre] [varchar](120) NOT NULL,
 				[Activo] [bit] NOT NULL,
+				[ZonaAsignada] [varchar](50) NULL,
+				[RapidezPct] [decimal](5, 2) NULL,
+				[FamiliaridadPct] [decimal](5, 2) NULL,
+				[TipoVehiculo] [varchar](20) NULL,
+				[CapacidadMaxima] [int] NULL,
+				[IdEmpleado] [int] NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdRepartidor] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Reserva]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ResenaDelivery]    Script Date: 14/4/2026 9:46:12 a. m. ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+			CREATE TABLE [dbo].[ResenaDelivery](
+				[IdResena] [int] IDENTITY(1,1) NOT NULL,
+				[IdPedido] [int] NOT NULL,
+				[Puntuacion] [int] NOT NULL,
+				[Comentario] [varchar](250) NULL,
+				[FechaResena] [datetime2](7) NOT NULL,
+				[IdLinkResena] [int] NULL,
+			PRIMARY KEY CLUSTERED 
+			(
+				[IdResena] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY]
+			GO
+			/****** Object:  Table [dbo].[Reserva]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -919,17 +976,18 @@ namespace Proyecto_restaurante
 				[IdReserva] [int] IDENTITY(1,1) NOT NULL,
 				[IdMesa] [int] NOT NULL,
 				[FechaHora] [datetime2](7) NOT NULL,
-				[Personas] [int] NOT NULL,
 				[Cliente] [varchar](120) NOT NULL,
 				[Estado] [varchar](12) NOT NULL,
 				[CreadoEn] [datetime2](7) NOT NULL,
+				[TotalRes] [decimal](10, 2) NOT NULL,
+				[Personas] [int] NOT NULL,
 			PRIMARY KEY CLUSTERED 
 			(
 				[IdReserva] ASC
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Rol]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Rol]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -947,7 +1005,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[RolPersona]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[RolPersona]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -962,7 +1020,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Sala]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Sala]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -983,7 +1041,22 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[TicketCocina]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[SectorZona]    Script Date: 14/4/2026 9:46:12 a. m. ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+			CREATE TABLE [dbo].[SectorZona](
+				[IdSectorZona] [int] IDENTITY(1,1) NOT NULL,
+				[Sector] [varchar](100) NOT NULL,
+				[Zona] [varchar](50) NOT NULL,
+			PRIMARY KEY CLUSTERED 
+			(
+				[IdSectorZona] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY]
+			GO
+			/****** Object:  Table [dbo].[TicketCocina]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1002,7 +1075,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[TipoDocumento]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[TipoDocumento]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1021,7 +1094,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[TipoRolPersona]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[TipoRolPersona]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1039,7 +1112,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[UnidadMedida]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[UnidadMedida]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1055,7 +1128,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[Usuario]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[Usuario]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1077,7 +1150,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[UsuarioRol]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[UsuarioRol]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1092,7 +1165,7 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Table [dbo].[ZonaDelivery]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Table [dbo].[ZonaDelivery]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1111,14 +1184,14 @@ namespace Proyecto_restaurante
 			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY]
 			GO
-			/****** Object:  Index [IX_DetallePedido_IdPedido]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Index [IX_DetallePedido_IdPedido]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			CREATE NONCLUSTERED INDEX [IX_DetallePedido_IdPedido] ON [dbo].[DetallePedido]
 			(
 				[IdPedido] ASC
 			)
 			INCLUDE([IdProducto],[Cantidad],[Subtotal]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			GO
-			/****** Object:  Index [IX_DetallePedido_IdProducto]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Index [IX_DetallePedido_IdProducto]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			CREATE NONCLUSTERED INDEX [IX_DetallePedido_IdProducto] ON [dbo].[DetallePedido]
 			(
 				[IdProducto] ASC
@@ -1127,7 +1200,7 @@ namespace Proyecto_restaurante
 			GO
 			SET ANSI_PADDING ON
 			GO
-			/****** Object:  Index [IX_Pedido_Fecha_Estado]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  Index [IX_Pedido_Fecha_Estado]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			CREATE NONCLUSTERED INDEX [IX_Pedido_Fecha_Estado] ON [dbo].[Pedido]
 			(
 				[Fecha] ASC,
@@ -1157,6 +1230,8 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Departamento] ADD  DEFAULT ((1)) FOR [Activo]
 			GO
+			ALTER TABLE [dbo].[DetallePago] ADD  DEFAULT ((0)) FOR [Origen]
+			GO
 			ALTER TABLE [dbo].[DetallePedido] ADD  CONSTRAINT [DF_DetallePedido_Grupo]  DEFAULT ((0)) FOR [Cuenta]
 			GO
 			ALTER TABLE [dbo].[Empleado] ADD  DEFAULT (CONVERT([date],getdate())) FOR [FechaIngreso]
@@ -1177,6 +1252,8 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Evento] ADD  DEFAULT (sysdatetime()) FOR [CreadoEn]
 			GO
+			ALTER TABLE [dbo].[Evento] ADD  DEFAULT ((0.00)) FOR [TotalRes]
+			GO
 			ALTER TABLE [dbo].[Factura] ADD  DEFAULT ((0)) FOR [Propina]
 			GO
 			ALTER TABLE [dbo].[Factura] ADD  DEFAULT ('emitida') FOR [Estado]
@@ -1193,7 +1270,13 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Inventario] ADD  DEFAULT ((0)) FOR [StockMinimo]
 			GO
-			ALTER TABLE [dbo].[Mesa] ADD  DEFAULT ('libre') FOR [Estado]
+			ALTER TABLE [dbo].[LinkResenaDelivery] ADD  DEFAULT (sysdatetime()) FOR [FechaCreacion]
+			GO
+			ALTER TABLE [dbo].[LinkResenaDelivery] ADD  DEFAULT ((0)) FOR [Expirado]
+			GO
+			ALTER TABLE [dbo].[LinkResenaDelivery] ADD  DEFAULT ((0)) FOR [Usado]
+			GO
+			ALTER TABLE [dbo].[Mesa] ADD  CONSTRAINT [DF_Mesa_Estado]  DEFAULT ((1)) FOR [Estado]
 			GO
 			ALTER TABLE [dbo].[Mesa] ADD  CONSTRAINT [DF_Mesa_Ocupado]  DEFAULT ((1)) FOR [Ocupado]
 			GO
@@ -1203,6 +1286,10 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Mesa] ADD  CONSTRAINT [DF_EsPrincipal_Mesa]  DEFAULT ((0)) FOR [EsPrincipal]
 			GO
+			ALTER TABLE [dbo].[Mesa] ADD  DEFAULT ((0.00)) FOR [PrecReserva]
+			GO
+			ALTER TABLE [dbo].[Mesa] ADD  DEFAULT ((0)) FOR [ParaReserva]
+			GO
 			ALTER TABLE [dbo].[MetodoPago] ADD  CONSTRAINT [DF_MetodoPago_Activo]  DEFAULT ((1)) FOR [Activo]
 			GO
 			ALTER TABLE [dbo].[MotivoSalidaInventario] ADD  CONSTRAINT [DF_MotivoSalidaInventario_Activo]  DEFAULT ((1)) FOR [Activo]
@@ -1210,6 +1297,8 @@ namespace Proyecto_restaurante
 			ALTER TABLE [dbo].[MovimientosInventario] ADD  DEFAULT (sysdatetime()) FOR [Fecha]
 			GO
 			ALTER TABLE [dbo].[Pago] ADD  DEFAULT (sysdatetime()) FOR [RegistradoEn]
+			GO
+			ALTER TABLE [dbo].[Pago] ADD  DEFAULT ((0)) FOR [Origen]
 			GO
 			ALTER TABLE [dbo].[Parametros] ADD  DEFAULT (sysdatetime()) FOR [ModificadoEn]
 			GO
@@ -1226,6 +1315,8 @@ namespace Proyecto_restaurante
 			ALTER TABLE [dbo].[Pedido] ADD  CONSTRAINT [DF_Pedido_Direccion]  DEFAULT ('') FOR [Direccion]
 			GO
 			ALTER TABLE [dbo].[Pedido] ADD  CONSTRAINT [DF_Pedido_IdRepartidor]  DEFAULT ((0)) FOR [IdRepartidor]
+			GO
+			ALTER TABLE [dbo].[Pedido] ADD  CONSTRAINT [DF_Pedido_EstadoDelivery]  DEFAULT ('Pendiente') FOR [EstadoDelivery]
 			GO
 			ALTER TABLE [dbo].[PermisosUsuario] ADD  DEFAULT ((0)) FOR [Admin]
 			GO
@@ -1287,9 +1378,15 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Repartidor] ADD  DEFAULT ((1)) FOR [Activo]
 			GO
+			ALTER TABLE [dbo].[ResenaDelivery] ADD  DEFAULT (sysdatetime()) FOR [FechaResena]
+			GO
 			ALTER TABLE [dbo].[Reserva] ADD  DEFAULT ('solicitada') FOR [Estado]
 			GO
 			ALTER TABLE [dbo].[Reserva] ADD  DEFAULT (sysdatetime()) FOR [CreadoEn]
+			GO
+			ALTER TABLE [dbo].[Reserva] ADD  DEFAULT ((0.00)) FOR [TotalRes]
+			GO
+			ALTER TABLE [dbo].[Reserva] ADD  DEFAULT ((0)) FOR [Personas]
 			GO
 			ALTER TABLE [dbo].[Sala] ADD  DEFAULT ((1)) FOR [Activo]
 			GO
@@ -1391,6 +1488,11 @@ namespace Proyecto_restaurante
 			ALTER TABLE [dbo].[Inventario]  WITH NOCHECK ADD FOREIGN KEY([IdIngrediente])
 			REFERENCES [dbo].[Ingrediente] ([IdIngrediente])
 			GO
+			ALTER TABLE [dbo].[LinkResenaDelivery]  WITH CHECK ADD  CONSTRAINT [FK_LinkResenaDelivery_Pedido] FOREIGN KEY([IdPedido])
+			REFERENCES [dbo].[Pedido] ([IdPedido])
+			GO
+			ALTER TABLE [dbo].[LinkResenaDelivery] CHECK CONSTRAINT [FK_LinkResenaDelivery_Pedido]
+			GO
 			ALTER TABLE [dbo].[Mesa]  WITH NOCHECK ADD FOREIGN KEY([IdSala])
 			REFERENCES [dbo].[Sala] ([IdSala])
 			GO
@@ -1479,6 +1581,16 @@ namespace Proyecto_restaurante
 			ALTER TABLE [dbo].[RecetaIngrediente]  WITH NOCHECK ADD FOREIGN KEY([IdReceta])
 			REFERENCES [dbo].[Receta] ([IdReceta])
 			GO
+			ALTER TABLE [dbo].[ResenaDelivery]  WITH CHECK ADD  CONSTRAINT [FK_ResenaDelivery_LinkResena] FOREIGN KEY([IdLinkResena])
+			REFERENCES [dbo].[LinkResenaDelivery] ([IdLinkResena])
+			GO
+			ALTER TABLE [dbo].[ResenaDelivery] CHECK CONSTRAINT [FK_ResenaDelivery_LinkResena]
+			GO
+			ALTER TABLE [dbo].[ResenaDelivery]  WITH CHECK ADD  CONSTRAINT [FK_ResenaDelivery_Pedido] FOREIGN KEY([IdPedido])
+			REFERENCES [dbo].[Pedido] ([IdPedido])
+			GO
+			ALTER TABLE [dbo].[ResenaDelivery] CHECK CONSTRAINT [FK_ResenaDelivery_Pedido]
+			GO
 			ALTER TABLE [dbo].[Reserva]  WITH NOCHECK ADD FOREIGN KEY([IdMesa])
 			REFERENCES [dbo].[Mesa] ([IdMesa])
 			GO
@@ -1536,8 +1648,6 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[Evento]  WITH NOCHECK ADD CHECK  (([MontajeMin]>=(0)))
 			GO
-			ALTER TABLE [dbo].[Evento]  WITH NOCHECK ADD CHECK  (([PersonasEstimadas]>(0)))
-			GO
 			ALTER TABLE [dbo].[Evento]  WITH NOCHECK ADD  CONSTRAINT [CK_Evento_Fechas] CHECK  (([FechaFin]>=[FechaInicio]))
 			GO
 			ALTER TABLE [dbo].[Evento] CHECK CONSTRAINT [CK_Evento_Fechas]
@@ -1572,9 +1682,11 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[RecetaIngrediente]  WITH NOCHECK ADD CHECK  (([RendimientoPct]>=(0) AND [RendimientoPct]<=(100)))
 			GO
-			ALTER TABLE [dbo].[Reserva]  WITH NOCHECK ADD CHECK  (([Estado]='cancelada' OR [Estado]='confirmada' OR [Estado]='solicitada'))
+			ALTER TABLE [dbo].[ResenaDelivery]  WITH CHECK ADD  CONSTRAINT [CK_ResenaDelivery_Puntuacion] CHECK  (([Puntuacion]>=(1) AND [Puntuacion]<=(5)))
 			GO
-			ALTER TABLE [dbo].[Reserva]  WITH NOCHECK ADD CHECK  (([Personas]>(0)))
+			ALTER TABLE [dbo].[ResenaDelivery] CHECK CONSTRAINT [CK_ResenaDelivery_Puntuacion]
+			GO
+			ALTER TABLE [dbo].[Reserva]  WITH NOCHECK ADD CHECK  (([Estado]='cancelada' OR [Estado]='confirmada' OR [Estado]='solicitada'))
 			GO
 			ALTER TABLE [dbo].[Sala]  WITH NOCHECK ADD CHECK  (([Capacidad]>=(0)))
 			GO
@@ -1582,7 +1694,7 @@ namespace Proyecto_restaurante
 			GO
 			ALTER TABLE [dbo].[ZonaDelivery]  WITH NOCHECK ADD CHECK  (([TiempoEstimadoMin]>=(1) AND [TiempoEstimadoMin]<=(240)))
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteClientes]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteClientes]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1623,7 +1735,7 @@ namespace Proyecto_restaurante
 					p.NombreCompleto;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteCompras]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteCompras]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1668,7 +1780,7 @@ namespace Proyecto_restaurante
 					c.Fecha, c.IdCompra;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteEmpleados]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteEmpleados]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1711,7 +1823,7 @@ namespace Proyecto_restaurante
 					p.NombreCompleto;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReportePlatosMasVendidos]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReportePlatosMasVendidos]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1754,7 +1866,7 @@ namespace Proyecto_restaurante
 					CantidadVendida DESC, MontoVendido DESC, pv.Nombre ASC;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteProveedores]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteProveedores]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1797,7 +1909,7 @@ namespace Proyecto_restaurante
 					p.NombreCompleto;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteStock]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteStock]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
@@ -1821,7 +1933,7 @@ namespace Proyecto_restaurante
 				ORDER BY Nombre;
 			END;
 			GO
-			/****** Object:  StoredProcedure [dbo].[sp_ReporteVentas]    Script Date: 8/4/2026 1:44:22 a. m. ******/
+			/****** Object:  StoredProcedure [dbo].[sp_ReporteVentas]    Script Date: 14/4/2026 9:46:12 a. m. ******/
 			SET ANSI_NULLS ON
 			GO
 			SET QUOTED_IDENTIFIER ON
