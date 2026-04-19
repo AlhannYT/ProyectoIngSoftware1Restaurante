@@ -123,6 +123,7 @@
             label22 = new Label();
             button19 = new Button();
             prodfiltrochk = new CheckBox();
+            adicionchk = new CheckBox();
             bebidachk = new CheckBox();
             ingredientechk = new CheckBox();
             estadoprod = new CheckBox();
@@ -1353,6 +1354,7 @@
             prodpanel.Controls.Add(label22);
             prodpanel.Controls.Add(button19);
             prodpanel.Controls.Add(prodfiltrochk);
+            prodpanel.Controls.Add(adicionchk);
             prodpanel.Controls.Add(bebidachk);
             prodpanel.Controls.Add(ingredientechk);
             prodpanel.Controls.Add(estadoprod);
@@ -1422,12 +1424,25 @@
             prodfiltrochk.UseVisualStyleBackColor = true;
             prodfiltrochk.CheckedChanged += prodfiltrochk_CheckedChanged;
             // 
+            // adicionchk
+            // 
+            adicionchk.AutoSize = true;
+            adicionchk.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            adicionchk.ForeColor = Color.White;
+            adicionchk.Location = new Point(323, 140);
+            adicionchk.Name = "adicionchk";
+            adicionchk.Size = new Size(88, 25);
+            adicionchk.TabIndex = 6;
+            adicionchk.Text = "Adicion";
+            adicionchk.UseVisualStyleBackColor = true;
+            adicionchk.CheckedChanged += adicionchk_CheckedChanged;
+            // 
             // bebidachk
             // 
             bebidachk.AutoSize = true;
             bebidachk.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             bebidachk.ForeColor = Color.White;
-            bebidachk.Location = new Point(317, 140);
+            bebidachk.Location = new Point(235, 140);
             bebidachk.Name = "bebidachk";
             bebidachk.Size = new Size(82, 25);
             bebidachk.TabIndex = 6;
@@ -2473,5 +2488,6 @@
         private Button button33;
         private TextBox iddepapuestotxt;
         private CheckBox bebidachk;
+        private CheckBox adicionchk;
     }
 }

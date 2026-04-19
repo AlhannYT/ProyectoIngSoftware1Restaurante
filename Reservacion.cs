@@ -21,6 +21,8 @@ namespace Proyecto_restaurante
             InitializeComponent();
         }
 
+        string conexionString = ConexionBD.ConexionSQL();
+
         private int ReservaID = 0;
         private int? ClienteIDReserva = null;
         private Button botonActivo = null;
@@ -30,11 +32,21 @@ namespace Proyecto_restaurante
         private int SalaID = 0;
         private int EventoID = 0;
         private int Origen = 0; // 2 = reserva, 3 = evento
+        private int TienePlatos = 0;
+        private int TieneAdicion = 0;
         private int? ClienteIDEvento = null;
+
         private List<int> mesasSeleccionadasEvento = new List<int>();
-        private List<int> mesasSeleccionadasReserva = new List<int>();
         private Dictionary<int, decimal> preciosMesasSeleccionadasEvento = new Dictionary<int, decimal>();
+
+        private List<int> mesasSeleccionadasReserva = new List<int>();
         private Dictionary<int, decimal> preciosMesasSeleccionadasReserva = new Dictionary<int, decimal>();
+
+        private List<int> cantCapacidadMesas = new List<int>();
+
+        private List<int> cantPlatos = new List<int>();
+        private List<int> cantAdiciones = new List<int>();
+
         private int estadoBuscarSalaEvento = 1;
         private bool panelSalaEventoVisible = false;
 
@@ -45,11 +57,15 @@ namespace Proyecto_restaurante
 
         private decimal totalAcumulado = 0;
         private decimal subtotalAcumulado = 0;
+
+        private decimal subtotalAdicion = 0;
+        private decimal subtotalPlatos = 0;
+
+        private int cantPersonasEvento = 0;
+
         public string comprobanteFinal;
         bool cargandoOrden = false;
         bool cargandoGrupos = false;
-
-        string conexionString = ConexionBD.ConexionSQL();
 
         public class MesaInfoReserva
         {
@@ -57,6 +73,40 @@ namespace Proyecto_restaurante
             public bool Ocupado { get; set; }
             public bool Reservado { get; set; }
             public decimal Precio { get; set; }
+        }
+
+        private void Reservacion_Load(object sender, EventArgs e)
+        {
+            tipoReservacmbx.SelectedIndex = 0;
+            CargarSalaCBX();
+
+            PanelClientes.Visible = false;
+
+            try
+            {
+                LiberarReservasVencidas();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al limpiar reservas vencidas: " + ex.Message);
+            }
+
+            PrepararNuevaReserva();
+            CargarMesasDisponiblesReserva();
+
+            fecini.Value = DateTime.Today;
+            fecfin.Value = DateTime.Today;
+            CargarReservas();
+
+            PrepararNuevoEvento();
+
+            CargarMesasDisponiblesEvento();
+
+            FechaInicialDTP.Value = SistemaFecha.FechaActual;
+            FechaFinDTP.Value = SistemaFecha.FechaActual;
+            panelOrganizador.Visible = false;
+            panelOrganizador.Parent = tabEventos;
+            panelOrganizador.Anchor = AnchorStyles.None;
         }
 
         private int? ObtenerIdReservaSeleccionada()
@@ -116,40 +166,6 @@ namespace Proyecto_restaurante
             ActualizarResumenMesasReserva();
         }
 
-        private void Reservacion_Load(object sender, EventArgs e)
-        {
-            tipoReservacmbx.SelectedIndex = 0;
-            CargarSalaCBX();
-
-            PanelClientes.Visible = false;
-
-            try
-            {
-                LiberarReservasVencidas();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al limpiar reservas vencidas: " + ex.Message);
-            }
-
-            PrepararNuevaReserva();
-            CargarMesasDisponiblesReserva();
-
-            fecini.Value = DateTime.Today;
-            fecfin.Value = DateTime.Today;
-            CargarReservas();
-
-            PrepararNuevoEvento();
-
-            CargarMesasDisponiblesEvento();
-
-            FechaInicialDTP.Value = SistemaFecha.FechaActual;
-            FechaFinDTP.Value = SistemaFecha.FechaActual;
-            panelOrganizador.Visible = false;
-            panelOrganizador.Parent = tabEventos;
-            panelOrganizador.Anchor = AnchorStyles.None;
-        }
-
         private void PrepararNuevaReserva()
         {
             ReservaID = 0;
@@ -191,6 +207,10 @@ namespace Proyecto_restaurante
             EventoID = 0;
             ClienteIDEvento = null;
             mesasSeleccionadasEvento.Clear();
+            cantPlatos.Clear();
+            cantAdiciones.Clear();
+            subtotalAdicion = 0;
+            subtotalPlatos = 0;
 
             CargarProximoIdEvento();
 
@@ -976,6 +996,7 @@ namespace Proyecto_restaurante
             bool reservadaNormal = datos.ReservadoNormal;
             bool reservadaEvento = datos.ReservadoEvento;
             decimal precioMesa = datos.PrecioMesa;
+            int capacidadMesa = datos.CapacidadMesa;
 
             if (ocupada || reservadaNormal || reservadaEvento)
             {
@@ -999,12 +1020,16 @@ namespace Proyecto_restaurante
                 if (preciosMesasSeleccionadasEvento.ContainsKey(idMesa))
                     preciosMesasSeleccionadasEvento.Remove(idMesa);
 
+                cantCapacidadMesas.Remove(capacidadMesa);
+
                 btn.BackColor = Color.LightGreen;
             }
             else
             {
                 mesasSeleccionadasEvento.Add(idMesa);
                 preciosMesasSeleccionadasEvento[idMesa] = precioMesa;
+
+                cantCapacidadMesas.Add(capacidadMesa);
 
                 btn.BackColor = Color.DodgerBlue;
             }
@@ -1114,7 +1139,8 @@ namespace Proyecto_restaurante
                                 Ocupado = ocupada,
                                 ReservadoNormal = reservadaNormal,
                                 ReservadoEvento = reservadaEvento,
-                                PrecioMesa = precioMesa
+                                PrecioMesa = precioMesa,
+                                CapacidadMesa = capacidad
                             };
 
                             bool yaSeleccionada = mesasSeleccionadasEvento.Contains(idMesa);
@@ -1151,6 +1177,7 @@ namespace Proyecto_restaurante
                 var info = botonActivo.Tag as MesaInfoReserva;
                 if (info != null)
                     subtotal = info.Precio;
+                
             }
 
             decimal itbis = subtotal * 0.18m;
@@ -1164,7 +1191,9 @@ namespace Proyecto_restaurante
         {
             cantMesasLista.Text = mesasSeleccionadasEvento.Count.ToString();
 
-            decimal subtotal = preciosMesasSeleccionadasEvento.Values.Sum();
+            int totalCapacidad = cantCapacidadMesas.Sum();
+
+            decimal subtotal = preciosMesasSeleccionadasEvento.Values.Sum() + (subtotalPlatos * totalCapacidad) + subtotalAdicion;
             decimal itbis = subtotal * 0.18m;
             decimal total = subtotal + itbis;
 
@@ -1217,6 +1246,20 @@ namespace Proyecto_restaurante
             if (mesasSeleccionadasEvento.Count == 0)
             {
                 MessageBox.Show("Debe seleccionar al menos una mesa para el evento.");
+                return;
+            }
+
+            int personasEvento = (int)cantPersonas.Value;
+            int capacidadTotal = cantCapacidadMesas.Sum();
+
+            if (capacidadTotal < personasEvento)
+            {
+                MessageBox.Show(
+                    $"La capacidad seleccionada ({capacidadTotal}) no cubre la cantidad de personas ({personasEvento}).",
+                    "Capacidad insuficiente",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
                 return;
             }
 
@@ -1304,7 +1347,6 @@ namespace Proyecto_restaurante
                     }
 
                     // 2) INSERT / UPDATE Evento
-
                     if (EventoID == 0)
                     {
                         string sqlInsert = @"
@@ -1334,6 +1376,72 @@ namespace Proyecto_restaurante
                             EventoID = (int)cmd.ExecuteScalar();
                             IdEventoTxtB.Text = EventoID.ToString();
                         }
+
+                        string sqlPlatoCA = @"
+                        INSERT INTO EventoPlatoCA (IdEvento, Fecha, Estado, TotalOrden)
+                        VALUES (@IdEvento, SYSDATETIME(), 1, @TotalOrden);
+                        SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+                        int idPlatoCA;
+                        using (SqlCommand cmdPlatoCA = new SqlCommand(sqlPlatoCA, conexion, trans))
+                        {
+                            cmdPlatoCA.Parameters.AddWithValue("@IdEvento", EventoID);
+                            cmdPlatoCA.Parameters.AddWithValue("@TotalOrden", subtotalPlatos);
+                            idPlatoCA = (int)cmdPlatoCA.ExecuteScalar();
+                        }
+
+                        foreach (DataGridViewRow fila in detalleorden.Rows)
+                        {
+                            if (fila.IsNewRow) continue;
+
+                            string sqlPlatoDET = @"
+                            INSERT INTO EventoPlatoDET (IdEvPlatoCA, IdProducto, NombreArt, Cantidad, Total)
+                            VALUES (@IdEvPlatoCA, @IdProducto, @NombreArt, @Cantidad, @Total);";
+
+                            using (SqlCommand cmdPlatoDET = new SqlCommand(sqlPlatoDET, conexion, trans))
+                            {
+                                cmdPlatoDET.Parameters.AddWithValue("@IdEvPlatoCA", idPlatoCA);
+                                cmdPlatoDET.Parameters.AddWithValue("@IdProducto", fila.Cells["IdProducto"].Value);
+                                cmdPlatoDET.Parameters.AddWithValue("@NombreArt", fila.Cells["Nombre"].Value);
+                                cmdPlatoDET.Parameters.AddWithValue("@Cantidad", (int)cantPersonas.Value);
+                                cmdPlatoDET.Parameters.AddWithValue("@Total", fila.Cells["Total"].Value);
+                                cmdPlatoDET.ExecuteNonQuery();
+                            }
+                        }
+
+                        string sqlAdicionCA = @"
+                        INSERT INTO EventoAdicionCA (IdEvento, IdCliente, Fecha, Estado, TotalOrden)
+                        VALUES (@IdEvento, @IdCliente, SYSDATETIME(), 1, @TotalOrden);
+                        SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+                        int idAdicionCA;
+                        using (SqlCommand cmdAdicionCA = new SqlCommand(sqlAdicionCA, conexion, trans))
+                        {
+                            cmdAdicionCA.Parameters.AddWithValue("@IdEvento", EventoID);
+                            cmdAdicionCA.Parameters.AddWithValue("@IdCliente", ClienteIDEvento);
+                            cmdAdicionCA.Parameters.AddWithValue("@TotalOrden", subtotalAdicion);
+                            idAdicionCA = (int)cmdAdicionCA.ExecuteScalar();
+                        }
+
+                        foreach (DataGridViewRow fila in detalleOrdenAdicion.Rows)
+                        {
+                            if (fila.IsNewRow) continue;
+
+                            string sqlAdicionDET = @"
+                            INSERT INTO EventoAdicionDET (IdEvAdCA, IdProducto, NombreArt, Cantidad, Total)
+                            VALUES (@IdEvAdCA, @IdProducto, @NombreArt, @Cantidad, @Total);";
+
+                            using (SqlCommand cmdAdicionDET = new SqlCommand(sqlAdicionDET, conexion, trans))
+                            {
+                                cmdAdicionDET.Parameters.AddWithValue("@IdEvAdCA", idAdicionCA);
+                                cmdAdicionDET.Parameters.AddWithValue("@IdProducto", fila.Cells["IdProducto"].Value);
+                                cmdAdicionDET.Parameters.AddWithValue("@NombreArt", fila.Cells["Nombre"].Value);
+                                cmdAdicionDET.Parameters.AddWithValue("@Cantidad", fila.Cells["Cantidad"].Value);
+                                cmdAdicionDET.Parameters.AddWithValue("@Total", fila.Cells["Total"].Value);
+                                cmdAdicionDET.ExecuteNonQuery();
+                            }
+                        }
+
                     }
                     else
                     {
@@ -2031,30 +2139,6 @@ namespace Proyecto_restaurante
             devueltapanel.Location = new Point(0, 0);
         }
 
-        private void agregarPlatos_Click(object sender, EventArgs e)
-        {
-            panelPlatos.Visible = !panelPlatos.Visible;
-
-            if (panelPlatos.Visible)
-            {
-                panelPlatos.BringToFront();
-                panelPlatos.Location = new Point(0, 0);
-                //txtbuscador.Text = "";
-            }
-        }
-
-        private void salirPlatos_Click(object sender, EventArgs e)
-        {
-            panelproducto.Visible = false;
-            panelPlatos.Visible = false;
-
-            if (detalleorden.CurrentRow != null)
-                detalleorden.ClearSelection();
-
-            if (tablapanelproducto.CurrentRow != null)
-                tablapanelproducto.ClearSelection();
-        }
-
         private void adicionesBtn_Click(object sender, EventArgs e)
         {
             panelAdiciones.Visible = !panelAdiciones.Visible;
@@ -2065,10 +2149,27 @@ namespace Proyecto_restaurante
                 panelAdiciones.Location = new Point(0, 0);
                 //txtbuscador.Text = "";
             }
+
+            if (detalleOrdenAdicion.Rows.Count == 0)
+            {
+                detalleOrdenAdicion.Columns.Clear();
+                detalleOrdenAdicion.Columns.Add("IdProducto", "Código");
+                detalleOrdenAdicion.Columns.Add("Nombre", "Artículo");
+                detalleOrdenAdicion.Columns.Add("Precio", "Precio");
+                detalleOrdenAdicion.Columns.Add("Itbis", "ITBIS");
+                detalleOrdenAdicion.Columns.Add("Cantidad", "Cantidad");
+                detalleOrdenAdicion.Columns.Add("Total", "Total");
+            }
         }
 
         private void salirAdi_Click(object sender, EventArgs e)
         {
+            if (detalleOrdenAdicion.Rows.Count > 0)
+            {
+                DialogResult res = MessageBox.Show("Hay adiciones agregadas. ¿Seguro que desea salir?", "Avertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (res != DialogResult.Yes) return;
+            }
+
             panelAdiciones.Visible = false;
             panelArticulos.Visible = false;
 
@@ -2077,6 +2178,354 @@ namespace Proyecto_restaurante
 
             if (detalleOrdenAdicion.CurrentRow != null)
                 detalleOrdenAdicion.ClearSelection();
+
+            advLabel.Visible = false;
+        }
+
+        private void CargarAdicionesEvento()
+        {
+            string sql = @"
+                SELECT 
+                    pv.IdProducto,
+                    pv.CodigoBarra,
+                    pv.Nombre,
+                    pv.PrecioVenta,
+	                pv.Itbis
+                FROM ProductoVenta pv
+                INNER JOIN ProductoTipo pt 
+                    ON pv.IdProductoTipo = pt.IdProductoTipo
+                WHERE pt.Adicion = 1;";
+
+            DataTable dt = new DataTable();
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            articulosDGV.DataSource = dt;
+            articulosDGV.ClearSelection();
+        }
+
+        private void consultaAdicion_Click(object sender, EventArgs e)
+        {
+            panelArticulos.Visible = !panelArticulos.Visible;
+
+            if (panelArticulos.Visible)
+            {
+                panelArticulos.BringToFront();
+                panelArticulos.Location = new Point(0, 0);
+                //txtbuscador.Text = "";
+            }
+
+            CargarAdicionesEvento();
+        }
+
+        private void articulosDGV_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = articulosDGV.Rows[e.RowIndex];
+
+                idAdProd.Text = row.Cells["IdProducto"].Value.ToString();
+                NombreAd.Text = row.Cells["Nombre"].Value.ToString();
+                PrecioAd.Text = row.Cells["PrecioVenta"].Value.ToString();
+                ItbisAd.Text = row.Cells["Itbis"].Value.ToString();
+            }
+
+            panelArticulos.Visible = false;
+            panelArticulos.Location = new Point(3, 499);
+            CantAd.Value = CantAd.Minimum;
+        }
+
+        private void SalirProdAd_Click(object sender, EventArgs e)
+        {
+            panelArticulos.Visible = !panelArticulos.Visible;
+        }
+
+        private void AgregarAd_Click(object sender, EventArgs e)
+        {
+            string codigoProducto = idAdProd.Text;
+            string nombreProducto = NombreAd.Text;
+
+            if (idAdProd.Text == "")
+            {
+                MessageBox.Show("Agregar producto.");
+                return;
+            }
+
+            if (!decimal.TryParse(PrecioAd.Text, out decimal precio))
+            {
+                MessageBox.Show("Precio inválido.");
+                return;
+            }
+
+            if (!decimal.TryParse(ItbisAd.Text, out decimal itbis))
+            {
+                MessageBox.Show("ITBIS inválido.");
+                return;
+            }
+
+            int cantidad = (int)CantAd.Value;
+
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(detalleOrdenAdicion);
+
+            decimal sub = precio * cantidad;
+            decimal tot = sub + (sub * (itbis / 100));
+
+            row.Cells[detalleOrdenAdicion.Columns["IdProducto"].Index].Value = codigoProducto;
+            row.Cells[detalleOrdenAdicion.Columns["Nombre"].Index].Value = nombreProducto;
+            row.Cells[detalleOrdenAdicion.Columns["Precio"].Index].Value = precio;
+            row.Cells[detalleOrdenAdicion.Columns["Itbis"].Index].Value = itbis;
+            row.Cells[detalleOrdenAdicion.Columns["Cantidad"].Index].Value = cantidad;
+            row.Cells[detalleOrdenAdicion.Columns["Total"].Index].Value = tot.ToString("N2");
+            detalleOrdenAdicion.Rows.Add(row);
+
+            RecalcularTotales();
+
+            labelCantAdic.Text = detalleOrdenAdicion.Rows.Count.ToString();
+            labelCantAdicion.Text = labelCantAdic.Text;
+
+            idAdProd.Clear();
+            NombreAd.Clear();
+            PrecioAd.Clear();
+            ItbisAd.Clear();
+            CantAd.Value = 1;
+
+            GuardarAd.Enabled = true;
+            advLabel.Visible = true;
+        }
+
+        private void RecalcularTotales()
+        {
+            decimal subtotal = 0;
+            decimal total = 0;
+
+            foreach (DataGridViewRow fila in detalleOrdenAdicion.Rows)
+            {
+                if (fila.IsNewRow) continue;
+
+                decimal precio = Convert.ToDecimal(fila.Cells["Precio"].Value);
+                decimal itbis = Convert.ToDecimal(fila.Cells["Itbis"].Value);
+                int cantidad = Convert.ToInt32(fila.Cells["Cantidad"].Value);
+
+                decimal sub = precio * cantidad;
+                decimal tot = sub + (sub * (itbis / 100));
+
+                subtotal += sub;
+                total += tot;
+            }
+
+            lbSubtAd.Text = subtotal.ToString("F2");
+            lbTotAd.Text = total.ToString("F2");
+        }
+
+        private void GuardarAd_Click(object sender, EventArgs e)
+        {
+            adicionesBtn.BackColor = Color.FromArgb(128, 255, 128);
+
+            panelAdiciones.Visible = false;
+            panelArticulos.Visible = false;
+
+            subtotalAdicion = Convert.ToDecimal(lbSubtAd.Text);
+            ActualizarResumenMesasEvento();
+        }
+
+        // Platos
+        private void agregarPlatos_Click(object sender, EventArgs e)
+        {
+            if (cantPersonas.Value <= 0)
+            {
+                MessageBox.Show("Debe ingresar una cantidad de personas.");
+                return;
+            }
+
+            if (mesasSeleccionadasEvento.Count <= 0)
+            {
+                MessageBox.Show("Debe haber mesas seleccionadas.");
+                return;
+            }
+
+            panelPlatos.Visible = !panelPlatos.Visible;
+
+            if (panelPlatos.Visible)
+            {
+                panelPlatos.BringToFront();
+                panelPlatos.Location = new Point(0, 0);
+                //txtbuscador.Text = "";
+            }
+
+            if (detalleorden.Rows.Count == 0)
+            {
+                detalleorden.Columns.Clear();
+                detalleorden.Columns.Add("IdProducto", "Código");
+                detalleorden.Columns.Add("Nombre", "Artículo");
+                detalleorden.Columns.Add("Precio", "Precio");
+                detalleorden.Columns.Add("Itbis", "ITBIS");
+                detalleorden.Columns.Add("Total", "Total");
+            }
+        }
+
+        private void salirPlatos_Click(object sender, EventArgs e)
+        {
+            if (detalleOrdenAdicion.Rows.Count > 0)
+            {
+                DialogResult res = MessageBox.Show("Hay platos agregados. ¿Seguro que desea salir?", "Avertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (res != DialogResult.Yes) return;
+            }
+
+            panelproducto.Visible = false;
+            panelPlatos.Visible = false;
+
+            if (detalleorden.CurrentRow != null)
+                detalleorden.ClearSelection();
+
+            if (tablapanelproducto.CurrentRow != null)
+                tablapanelproducto.ClearSelection();
+        }
+
+        private void buscarproductobtn_Click(object sender, EventArgs e)
+        {
+            panelproducto.Location = new Point(0, 0);
+            panelproducto.BringToFront();
+            panelproducto.Visible = true;
+
+            string consulta = @"
+                SELECT 
+                    pv.IdProducto,
+                    pv.CodigoBarra,
+                    pv.Nombre,
+                    pv.PrecioVenta,
+                    pv.Itbis,
+                    pv.Existencia
+                FROM ProductoVenta pv
+                INNER JOIN ProductoTipo pt
+                ON pv.IdProductoTipo = pt.IdProductoTipo
+                WHERE 
+                pv.Activo = 1
+                AND pt.Ingrediente = 0;";
+            SqlDataAdapter adaptador = new SqlDataAdapter(consulta, conexionString);
+            DataTable dt = new DataTable();
+            adaptador.Fill(dt);
+            tablapanelproducto.DataSource = dt;
+
+            tablapanelproducto.Columns["IdProducto"].HeaderText = "ID";
+            tablapanelproducto.Columns["CodigoBarra"].HeaderText = "Código";
+            tablapanelproducto.Columns["Nombre"].HeaderText = "Nombre";
+            tablapanelproducto.Columns["PrecioVenta"].HeaderText = "Venta";
+            tablapanelproducto.Columns["Itbis"].HeaderText = "Itbis";
+            tablapanelproducto.Columns["Existencia"].HeaderText = "Existencia";
+        }
+
+        private void bajarproductobtn_Click(object sender, EventArgs e)
+        {
+            string codigoProducto = txtcodigoproducto.Text;
+            string nombreProducto = txtnombreproducto.Text;
+
+            if (txtcodigoproducto.Text == "")
+            {
+                MessageBox.Show("Agregar producto.");
+                return;
+            }
+
+            if (!decimal.TryParse(txtprecioproducto.Text, out decimal precio))
+            {
+                MessageBox.Show("Precio inválido.");
+                return;
+            }
+
+            if (!decimal.TryParse(txtiva.Text, out decimal itbis))
+            {
+                MessageBox.Show("ITBIS inválido.");
+                return;
+            }
+
+            int cantidad = 1;
+
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(detalleorden);
+
+            decimal sub = precio * cantidad;
+            decimal tot = sub + (sub * (itbis / 100));
+
+            row.Cells[0].Value = codigoProducto;
+            row.Cells[1].Value = nombreProducto;
+            row.Cells[2].Value = precio;
+            row.Cells[3].Value = itbis;
+            row.Cells[4].Value = tot.ToString("N2");
+
+            detalleorden.Rows.Add(row);
+
+            RecalcularTotalesPlatos();
+
+            labelcantidadarticulos.Text = detalleorden.Rows.Count.ToString();
+            LabelCantPlatos.Text = labelcantidadarticulos.Text;
+
+            txtcodigoproducto.Clear();
+            txtnombreproducto.Clear();
+            txtprecioproducto.Clear();
+            txtiva.Clear();
+
+            guardarordenbtn.Enabled = true;
+            PlatoAdLabel.Visible = true;
+        }
+
+        private void RecalcularTotalesPlatos()
+        {
+            decimal subtotal = 0;
+            decimal total = 0;
+
+            foreach (DataGridViewRow fila in detalleorden.Rows)
+            {
+                if (fila.IsNewRow) continue;
+
+                decimal precio = Convert.ToDecimal(fila.Cells["Precio"].Value);
+                decimal itbis = Convert.ToDecimal(fila.Cells["Itbis"].Value);
+                int cantidad = 1;
+
+                decimal sub = precio * cantidad;
+                decimal tot = sub + (sub * (itbis / 100));
+
+                subtotal += sub;
+                total += tot;
+            }
+
+            subtotalPlatos = subtotal;
+
+            labelsubtotal.Text = subtotal.ToString("F2");
+            labeltotal.Text = total.ToString("F2");
+        }
+
+        private void tablapanelproducto_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = tablapanelproducto.Rows[e.RowIndex];
+
+                txtcodigoproducto.Text = row.Cells["IdProducto"].Value.ToString();
+                txtnombreproducto.Text = row.Cells["Nombre"].Value.ToString();
+                txtprecioproducto.Text = row.Cells["PrecioVenta"].Value.ToString();
+                txtiva.Text = row.Cells["Itbis"].Value.ToString();
+            }
+
+            panelproducto.Visible = false;
+            panelproducto.Location = new Point(3, 499);
+        }
+
+        private void guardarordenbtn_Click(object sender, EventArgs e)
+        {
+            agregarPlatos.BackColor = Color.FromArgb(128, 255, 128);
+
+            panelproducto.Visible = false;
+            panelPlatos.Visible = false;
+
+            subtotalPlatos = Convert.ToDecimal(labelsubtotal.Text);
+            ActualizarResumenMesasEvento();
         }
     }
 }
