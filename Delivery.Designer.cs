@@ -670,7 +670,7 @@
             tabPage1.Location = new Point(4, 30);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(1748, 762);
+            tabPage1.Size = new Size(811, 762);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Creación";
             tabPage1.Click += tabPage1_Click;
@@ -700,9 +700,9 @@
             btnAsignarAutomatico.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             btnAsignarAutomatico.Image = Properties.Resources.repartidor;
             btnAsignarAutomatico.ImageAlign = ContentAlignment.MiddleLeft;
-            btnAsignarAutomatico.Location = new Point(588, 250);
+            btnAsignarAutomatico.Location = new Point(584, 250);
             btnAsignarAutomatico.Name = "btnAsignarAutomatico";
-            btnAsignarAutomatico.Size = new Size(128, 52);
+            btnAsignarAutomatico.Size = new Size(145, 52);
             btnAsignarAutomatico.TabIndex = 1;
             btnAsignarAutomatico.Text = "Asignar automatico";
             btnAsignarAutomatico.UseVisualStyleBackColor = false;
@@ -1181,7 +1181,7 @@
             tabPage6.Controls.Add(panelComanda);
             tabPage6.Location = new Point(4, 30);
             tabPage6.Name = "tabPage6";
-            tabPage6.Size = new Size(1748, 762);
+            tabPage6.Size = new Size(811, 762);
             tabPage6.TabIndex = 2;
             tabPage6.Text = "Comanda";
             // 

@@ -331,7 +331,6 @@ namespace Proyecto_restaurante
                 return;
             }
 
-            // 1. Detectar zona desde la dirección
             string zonaDetectada = DetectarZonaDesdeBD(direccioncliente.Text)?.Trim();
 
             if (!string.IsNullOrWhiteSpace(zonaDetectada))
@@ -341,7 +340,6 @@ namespace Proyecto_restaurante
                     cmbZonaEntrega.SelectedIndex = idx;
             }
 
-            // 2. Si no pudo detectar, usar la que esté seleccionada manualmente
             if (cmbZonaEntrega.SelectedIndex < 0)
             {
                 MessageBox.Show("No se pudo determinar la zona automáticamente. Selecciónela manualmente.");
@@ -366,26 +364,22 @@ namespace Proyecto_restaurante
         r.TipoVehiculo,
         r.RapidezPct,
         r.FamiliaridadPct,
-        r.CapacidadMaxima
-    FROM Repartidor r
-    INNER JOIN Empleado e ON r.IdEmpleado = e.IdEmpleado
-    INNER JOIN Persona p ON e.IdPersona = p.IdPersona
+        r.CapacidadMaxima,
+        cfg.Prioridad
+    FROM dbo.Repartidor r
+    INNER JOIN dbo.Empleado e ON r.IdEmpleado = e.IdEmpleado
+    INNER JOIN dbo.Persona p ON e.IdPersona = p.IdPersona
+    INNER JOIN dbo.ConfigVehiculoDelivery cfg
+        ON r.TipoVehiculo = cfg.TipoVehiculo
+       AND @TotalComidas BETWEEN cfg.CantidadMin AND cfg.CantidadMax
+       AND cfg.Activo = 1
     WHERE e.Activo = 1
       AND p.Activo = 1
       AND e.IdRolEmpleado = 6
       AND r.CapacidadMaxima >= @TotalComidas
-      AND (
-            (@TotalComidas >= 10 AND r.TipoVehiculo IN ('Carro', 'MotorGrande'))
-            OR
-            (@TotalComidas < 10 AND r.TipoVehiculo IN ('Motor', 'MotorGrande', 'Carro'))
-          )
     ORDER BY
         CASE WHEN r.ZonaAsignada = @Zona THEN 0 ELSE 1 END,
-        CASE 
-            WHEN @TotalComidas >= 10 AND r.TipoVehiculo IN ('Carro', 'MotorGrande') THEN 0
-            WHEN @TotalComidas < 10 AND r.TipoVehiculo = 'Motor' THEN 0
-            ELSE 1
-        END,
+        cfg.Prioridad ASC,
         r.RapidezPct DESC,
         r.FamiliaridadPct DESC;";
 
@@ -410,12 +404,17 @@ namespace Proyecto_restaurante
                                 ? "Sin vehículo"
                                 : vehiculoAsignado;
 
-                            if (totalComidas >= 10)
-                                motivoAsignacion = "Pedido grande: se asignó un vehículo con mayor capacidad.";
-                            else if (dr["ZonaAsignada"].ToString().Trim().Equals(zona, StringComparison.OrdinalIgnoreCase))
-                                motivoAsignacion = "Asignado por coincidencia de zona y rapidez.";
+                            bool mismaZona = dr["ZonaAsignada"].ToString().Trim()
+                                .Equals(zona, StringComparison.OrdinalIgnoreCase);
+
+                            int prioridad = Convert.ToInt32(dr["Prioridad"]);
+
+                            if (mismaZona && prioridad == 1)
+                                motivoAsignacion = "Asignado por coincidencia de zona y prioridad del vehículo.";
+                            else if (mismaZona)
+                                motivoAsignacion = "Asignado por coincidencia de zona.";
                             else
-                                motivoAsignacion = "Asignado por disponibilidad y capacidad.";
+                                motivoAsignacion = "Asignado por disponibilidad, capacidad y configuración del vehículo.";
 
                             txtMotivoAsignacion.Text = motivoAsignacion;
 
@@ -2167,8 +2166,11 @@ namespace Proyecto_restaurante
                 string sql = @"
         SELECT 
             ISNULL(CAST(AVG(CAST(Puntuacion AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS Promedio,
-            COUNT(*) AS Cantidad
-        FROM dbo.ResenaDelivery";
+            COUNT(*) AS Cantidad,
+            ISNULL(CAST(AVG(CAST(Calidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioCalidad,
+            ISNULL(CAST(AVG(CAST(Amabilidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioAmabilidad,
+            ISNULL(CAST(AVG(CAST(Puntualidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioPuntualidad
+        FROM dbo.ResenaDelivery;";
 
                 using (SqlCommand cmd = new SqlCommand(sql, con))
                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -2177,11 +2179,15 @@ namespace Proyecto_restaurante
                     {
                         txtPromedioResena.Text = Convert.ToDecimal(dr["Promedio"]).ToString("0.00");
                         txtCantidadResenas.Text = dr["Cantidad"].ToString();
+
+                        // Solo si tienes estos controles creados:
+                        // txtPromedioCalidad.Text = Convert.ToDecimal(dr["PromedioCalidad"]).ToString("0.00");
+                        // txtPromedioAmabilidad.Text = Convert.ToDecimal(dr["PromedioAmabilidad"]).ToString("0.00");
+                        // txtPromedioPuntualidad.Text = Convert.ToDecimal(dr["PromedioPuntualidad"]).ToString("0.00");
                     }
                 }
             }
         }
-
         private void CargarUltimasResenas()
         {
             using (SqlConnection con = new SqlConnection(conexionString))
@@ -2193,6 +2199,9 @@ namespace Proyecto_restaurante
             r.IdPedido,
             p.NombreCliente,
             r.Puntuacion,
+            r.Calidad,
+            r.Amabilidad,
+            r.Puntualidad,
             r.Comentario,
             r.FechaResena
         FROM dbo.ResenaDelivery r
@@ -2215,6 +2224,15 @@ namespace Proyecto_restaurante
 
             if (dgvUltimasResenas.Columns.Contains("Puntuacion"))
                 dgvUltimasResenas.Columns["Puntuacion"].HeaderText = "Puntuación";
+
+            if (dgvUltimasResenas.Columns.Contains("Calidad"))
+                dgvUltimasResenas.Columns["Calidad"].HeaderText = "Calidad";
+
+            if (dgvUltimasResenas.Columns.Contains("Amabilidad"))
+                dgvUltimasResenas.Columns["Amabilidad"].HeaderText = "Amabilidad";
+
+            if (dgvUltimasResenas.Columns.Contains("Puntualidad"))
+                dgvUltimasResenas.Columns["Puntualidad"].HeaderText = "Puntualidad";
 
             if (dgvUltimasResenas.Columns.Contains("Comentario"))
                 dgvUltimasResenas.Columns["Comentario"].HeaderText = "Comentario";
