@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Proyecto_restaurante.menu;
 using System.Globalization;
+using PdfSharp.Snippets.Drawing;
 
 namespace Proyecto_restaurante
 {
@@ -214,6 +215,13 @@ namespace Proyecto_restaurante
 
             CargarProximoIdEvento();
 
+            LabelCantPlatos.Text = "0";
+            labelCantAdicion.Text = "0";
+            detalleorden.Rows.Clear();
+            detalleOrdenAdicion.Rows.Clear();
+            agregarPlatos.BackColor = Color.FromArgb(64, 64, 64);
+            adicionesBtn.BackColor = Color.FromArgb(64, 64, 64);
+
             FechaCreacionDTP.Value = SistemaFecha.FechaActual;
             FechaInicialDTP.Value = SistemaFecha.FechaActual;
             FechaFinDTP.Value = SistemaFecha.FechaActual;
@@ -226,6 +234,7 @@ namespace Proyecto_restaurante
             notatxt.Clear();
 
             EventoMesasP.Controls.Clear();
+            ActualizarResumenMesasEvento();
         }
 
         private void CargarSalaCBX()
@@ -1404,7 +1413,8 @@ namespace Proyecto_restaurante
                                 cmdPlatoDET.Parameters.AddWithValue("@IdProducto", fila.Cells["IdProducto"].Value);
                                 cmdPlatoDET.Parameters.AddWithValue("@NombreArt", fila.Cells["Nombre"].Value);
                                 cmdPlatoDET.Parameters.AddWithValue("@Cantidad", (int)cantPersonas.Value);
-                                cmdPlatoDET.Parameters.AddWithValue("@Total", fila.Cells["Total"].Value);
+                                decimal totalPlato = Convert.ToDecimal(fila.Cells["Total"].Value);
+                                cmdPlatoDET.Parameters.AddWithValue("@Total", totalPlato);
                                 cmdPlatoDET.ExecuteNonQuery();
                             }
                         }
@@ -1437,7 +1447,9 @@ namespace Proyecto_restaurante
                                 cmdAdicionDET.Parameters.AddWithValue("@IdProducto", fila.Cells["IdProducto"].Value);
                                 cmdAdicionDET.Parameters.AddWithValue("@NombreArt", fila.Cells["Nombre"].Value);
                                 cmdAdicionDET.Parameters.AddWithValue("@Cantidad", fila.Cells["Cantidad"].Value);
-                                cmdAdicionDET.Parameters.AddWithValue("@Total", fila.Cells["Total"].Value);
+                                decimal totalAdicion = Convert.ToDecimal(fila.Cells["Total"].Value);
+                                cmdAdicionDET.Parameters.AddWithValue("@Total", totalAdicion);
+
                                 cmdAdicionDET.ExecuteNonQuery();
                             }
                         }
@@ -1510,6 +1522,7 @@ namespace Proyecto_restaurante
 
                     PrepararNuevoEvento();
                     CargarMesasDisponiblesEvento();
+                    NuevoEventoBtn_Click(sender, e);
                     NombreEventoTxt.Focus();
                 }
                 catch (Exception ex)
