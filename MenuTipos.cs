@@ -308,7 +308,7 @@ namespace Proyecto_restaurante
             bool soloActivos = prodfiltrochk != null && prodfiltrochk.Checked;
 
             string sql = @"
-                            SELECT IdProductoTipo, Nombre, Activo, Ingrediente, Bebida
+                            SELECT IdProductoTipo, Nombre, Activo, Ingrediente, Bebida, Adicon
                             FROM dbo.ProductoTipo
                             WHERE (@f = '' OR Nombre LIKE '%' + @f + '%')"
                                         + (soloActivos ? " AND Activo = 1" : "") +
@@ -341,6 +341,8 @@ namespace Proyecto_restaurante
                     prodtidt.Columns["Ingrediente"].HeaderText = "¿Ingrediente?";
                 if (prodtidt.Columns.Contains("Bebida"))
                     prodtidt.Columns["Bebida"].HeaderText = "¿Bebida?";
+                if (prodtidt.Columns.Contains("Adicion"))
+                    prodtidt.Columns["Adicion"].HeaderText = "¿Adicion?";
             }
         }
 
@@ -396,6 +398,7 @@ namespace Proyecto_restaurante
             bool activo = estadoprod != null && estadoprod.Checked;
             bool ingrediente = ingredientechk != null && ingredientechk.Checked;
             bool bebida = bebidachk != null && bebidachk.Checked;
+            bool adicion = adicionchk != null && adicionchk.Checked;
 
             using (var cn = new SqlConnection(conexionString))
             {
@@ -403,13 +406,14 @@ namespace Proyecto_restaurante
 
                 if (string.IsNullOrEmpty(ProductoTipoId))
                 {
-                    string sql = "INSERT INTO dbo.ProductoTipo (Nombre, Activo, Ingrediente, Bebida) VALUES (@Nombre, @Activo, @Ingrediente, @Bebida);";
+                    string sql = "INSERT INTO dbo.ProductoTipo (Nombre, Activo, Ingrediente, Bebida, Adicion) VALUES (@Nombre, @Activo, @Ingrediente, @Bebida, @Adicion);";
                     using (var cmd = new SqlCommand(sql, cn))
                     {
                         cmd.Parameters.AddWithValue("@Nombre", prodtxt.Text.Trim());
                         cmd.Parameters.AddWithValue("@Activo", activo ? 1 : 0);
                         cmd.Parameters.AddWithValue("@Ingrediente", ingrediente ? 1 : 0);
                         cmd.Parameters.AddWithValue("@Bebida", bebida ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@Adicion", adicion ? 1 : 0);
 
                         MessageBox.Show(cmd.ExecuteNonQuery() > 0
                             ? "Tipo registrado con éxito."
@@ -418,7 +422,7 @@ namespace Proyecto_restaurante
                 }
                 else
                 {
-                    string sql = "UPDATE dbo.ProductoTipo SET Nombre=@Nombre, Activo=@Activo, Ingrediente=@Ingrediente, Bebida=@Bebida WHERE IdProductoTipo=@Id;";
+                    string sql = "UPDATE dbo.ProductoTipo SET Nombre=@Nombre, Activo=@Activo, Ingrediente=@Ingrediente, Bebida=@Bebida, Adicion=@Adicion WHERE IdProductoTipo=@Id;";
                     using (var cmd = new SqlCommand(sql, cn))
                     {
                         cmd.Parameters.AddWithValue("@Id", int.Parse(ProductoTipoId));
@@ -426,6 +430,7 @@ namespace Proyecto_restaurante
                         cmd.Parameters.AddWithValue("@Activo", activo ? 1 : 0);
                         cmd.Parameters.AddWithValue("@Ingrediente", ingrediente ? 1 : 0);
                         cmd.Parameters.AddWithValue("@Bebida", bebida ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@Adicion", adicion ? 1 : 0);
 
                         MessageBox.Show(cmd.ExecuteNonQuery() > 0
                             ? "Tipo actualizado con éxito."
@@ -1907,6 +1912,7 @@ namespace Proyecto_restaurante
             if (ingredientechk.Checked)
             {
                 bebidachk.Checked = false;
+                adicionchk.Checked = false;
             }
         }
 
@@ -1915,6 +1921,16 @@ namespace Proyecto_restaurante
             if (bebidachk.Checked)
             {
                 ingredientechk.Checked = false;
+                adicionchk.Checked = false;
+            }
+        }
+
+        private void adicionchk_CheckedChanged(object sender, EventArgs e)
+        {
+            if (adicionchk.Checked)
+            {
+                ingredientechk.Checked = false;
+                bebidachk.Checked = false;
             }
         }
     }
