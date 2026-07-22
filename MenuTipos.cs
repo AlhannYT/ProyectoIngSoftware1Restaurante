@@ -308,7 +308,7 @@ namespace Proyecto_restaurante
             bool soloActivos = prodfiltrochk != null && prodfiltrochk.Checked;
 
             string sql = @"
-                            SELECT IdProductoTipo, Nombre, Activo, Ingrediente, Bebida, Adicon
+                            SELECT IdProductoTipo, Nombre, Activo, Ingrediente, Bebida, Adicion
                             FROM dbo.ProductoTipo
                             WHERE (@f = '' OR Nombre LIKE '%' + @f + '%')"
                                         + (soloActivos ? " AND Activo = 1" : "") +
