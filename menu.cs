@@ -296,7 +296,7 @@ namespace Proyecto_restaurante
                         toolTip1.SetToolTip(button11, "Generales");
                         toolTip1.SetToolTip(button13, "Empleados");
                         toolTip1.SetToolTip(reportesbtn, "Reportes");
-                        toolTip1.SetToolTip(button14, "Tipos");
+                        toolTip1.SetToolTip(button14, "Extras...");
                     }
                 }
 
@@ -320,7 +320,7 @@ namespace Proyecto_restaurante
                         button2.Text = "Clientes";
                         button6.Text = "Proveedores";
                         button10.Text = "Ordenes (Local)";
-                        button14.Text = "Tipos";
+                        button14.Text = "Extras...";
                         button9.Text = "Compras";
                         reservacion.Text = "Reservacion";
                         button11.Text = "Generales";
@@ -508,7 +508,6 @@ namespace Proyecto_restaurante
 
         private void deslizar_Click(object sender, EventArgs e)
         {
-
             if (sistemas == 0)
             {
                 deslizar.Image = Proyecto_restaurante.Properties.Resources.flechaizquierdaroja;

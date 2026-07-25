@@ -11,6 +11,7 @@ namespace Proyecto_restaurante
         public inicio()
         {
             InitializeComponent();
+            this.KeyPreview = true;
         }
 
         private static string rutaUsuario = @"C:\SistemaArchivos\Usuarios\Usuarios.txt";
@@ -207,7 +208,7 @@ namespace Proyecto_restaurante
 
         private void sqlbtn_Click(object sender, EventArgs e)
         {
-            autorizar.Location = new Point(78, 71);
+            autorizar.Location = new Point(90, 71);
             autorizar.BringToFront();
             autorizar.Visible = true;
 
@@ -218,7 +219,7 @@ namespace Proyecto_restaurante
         {
             conexionpanel.Location = new Point(605, 45);
             conexionpanel.Visible = false;
-            
+
         }
 
         private void guardarbtn_Click(object sender, EventArgs e)
@@ -439,15 +440,15 @@ namespace Proyecto_restaurante
             {
                 iniciobtn.Enabled = false;
 
-                alerta.Visible = true;
+                AvisoDBIMG.Visible = true;
 
                 System.Windows.Forms.Timer timerParpadeo = new System.Windows.Forms.Timer();
-                timerParpadeo.Interval = 500;
+                timerParpadeo.Interval = 400;
                 int contador = 0;
 
                 timerParpadeo.Tick += (s, args) =>
                 {
-                    alerta.Visible = !alerta.Visible;
+                    AvisoDBIMG.Visible = !AvisoDBIMG.Visible;
                     contador++;
 
                     if (contador >= 10)
@@ -461,7 +462,7 @@ namespace Proyecto_restaurante
             }
             else
             {
-                alerta.Visible = false;
+                AvisoDBIMG.Visible = false;
                 iniciobtn.Enabled = true;
             }
 
@@ -646,6 +647,15 @@ namespace Proyecto_restaurante
             autorizar.Visible = true;
 
             panelSesion.Enabled = true;
+        }
+
+        private void inicio_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Alt && e.KeyCode == Keys.B)
+            {
+                sqlbtn.Visible = true;
+                e.SuppressKeyPress = true;
+            }
         }
     }
 }

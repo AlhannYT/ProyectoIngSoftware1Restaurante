@@ -42,6 +42,9 @@
             sqlbtn = new Button();
             toolTip1 = new ToolTip(components);
             recordarchk = new CheckBox();
+            alerta = new PictureBox();
+            AvisoDBIMG = new Panel();
+            pictureBox3 = new PictureBox();
             conexionpanel = new Panel();
             progressBar1 = new ProgressBar();
             CrearDBbtn = new Button();
@@ -63,7 +66,6 @@
             button5 = new Button();
             button4 = new Button();
             pictureBox2 = new PictureBox();
-            alerta = new PictureBox();
             usuarioimagen = new PictureBox();
             contraimagen = new PictureBox();
             autorizar = new Panel();
@@ -76,11 +78,13 @@
             label2 = new Label();
             panelSesion = new Panel();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)alerta).BeginInit();
+            AvisoDBIMG.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
             conexionpanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)txtsql).BeginInit();
             conexiones.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)alerta).BeginInit();
             ((System.ComponentModel.ISupportInitialize)usuarioimagen).BeginInit();
             ((System.ComponentModel.ISupportInitialize)contraimagen).BeginInit();
             autorizar.SuspendLayout();
@@ -91,7 +95,7 @@
             // 
             pictureBox1.BackColor = Color.Transparent;
             pictureBox1.Image = Properties.Resources.comidapedido2;
-            pictureBox1.Location = new Point(293, 42);
+            pictureBox1.Location = new Point(293, 54);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(142, 132);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -127,7 +131,7 @@
             iniciobtn.Cursor = Cursors.Hand;
             iniciobtn.Image = Properties.Resources.entrar1;
             iniciobtn.ImageAlign = ContentAlignment.MiddleLeft;
-            iniciobtn.Location = new Point(208, 319);
+            iniciobtn.Location = new Point(208, 315);
             iniciobtn.Name = "iniciobtn";
             iniciobtn.Size = new Size(142, 29);
             iniciobtn.TabIndex = 3;
@@ -138,7 +142,7 @@
             // panel1
             // 
             panel1.BackColor = SystemColors.Highlight;
-            panel1.Location = new Point(96, 192);
+            panel1.Location = new Point(96, 200);
             panel1.Name = "panel1";
             panel1.Size = new Size(366, 6);
             panel1.TabIndex = 4;
@@ -177,7 +181,7 @@
             iniciolabel.AutoSize = true;
             iniciolabel.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             iniciolabel.ForeColor = Color.White;
-            iniciolabel.Location = new Point(214, 5);
+            iniciolabel.Location = new Point(214, 18);
             iniciolabel.Name = "iniciolabel";
             iniciolabel.Size = new Size(130, 21);
             iniciolabel.TabIndex = 8;
@@ -201,12 +205,13 @@
             // 
             sqlbtn.Cursor = Cursors.Hand;
             sqlbtn.Image = Properties.Resources.sql;
-            sqlbtn.Location = new Point(6, 42);
+            sqlbtn.Location = new Point(13, 35);
             sqlbtn.Name = "sqlbtn";
             sqlbtn.Size = new Size(36, 36);
             sqlbtn.TabIndex = 9;
             toolTip1.SetToolTip(sqlbtn, "Conexion SQL");
             sqlbtn.UseVisualStyleBackColor = true;
+            sqlbtn.Visible = false;
             sqlbtn.Click += sqlbtn_Click;
             // 
             // recordarchk
@@ -226,6 +231,36 @@
             toolTip1.SetToolTip(recordarchk, "Recordar Usuario");
             recordarchk.UseVisualStyleBackColor = false;
             recordarchk.CheckedChanged += recordarchk_CheckedChanged;
+            // 
+            // alerta
+            // 
+            alerta.Image = Properties.Resources.exclamacion;
+            alerta.Location = new Point(38, 10);
+            alerta.Name = "alerta";
+            alerta.Size = new Size(24, 24);
+            alerta.SizeMode = PictureBoxSizeMode.AutoSize;
+            alerta.TabIndex = 14;
+            alerta.TabStop = false;
+            toolTip1.SetToolTip(alerta, "Base de Datos Faltante");
+            // 
+            // AvisoDBIMG
+            // 
+            AvisoDBIMG.Controls.Add(pictureBox3);
+            AvisoDBIMG.Controls.Add(alerta);
+            AvisoDBIMG.Location = new Point(17, 31);
+            AvisoDBIMG.Name = "AvisoDBIMG";
+            AvisoDBIMG.Size = new Size(69, 43);
+            AvisoDBIMG.TabIndex = 15;
+            // 
+            // pictureBox3
+            // 
+            pictureBox3.Image = Properties.Resources.servidor_sql2;
+            pictureBox3.Location = new Point(7, 10);
+            pictureBox3.Name = "pictureBox3";
+            pictureBox3.Size = new Size(24, 24);
+            pictureBox3.SizeMode = PictureBoxSizeMode.AutoSize;
+            pictureBox3.TabIndex = 14;
+            pictureBox3.TabStop = false;
             // 
             // conexionpanel
             // 
@@ -253,7 +288,7 @@
             // progressBar1
             // 
             progressBar1.ForeColor = Color.FromArgb(0, 192, 0);
-            progressBar1.Location = new Point(76, 279);
+            progressBar1.Location = new Point(76, 310);
             progressBar1.Name = "progressBar1";
             progressBar1.Size = new Size(412, 23);
             progressBar1.TabIndex = 7;
@@ -462,22 +497,12 @@
             // 
             pictureBox2.BackColor = Color.Transparent;
             pictureBox2.Image = Properties.Resources.textocentrado;
-            pictureBox2.Location = new Point(123, 61);
+            pictureBox2.Location = new Point(123, 73);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(175, 95);
             pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox2.TabIndex = 0;
             pictureBox2.TabStop = false;
-            // 
-            // alerta
-            // 
-            alerta.Image = Properties.Resources.exclamacion;
-            alerta.Location = new Point(48, 48);
-            alerta.Name = "alerta";
-            alerta.Size = new Size(24, 24);
-            alerta.SizeMode = PictureBoxSizeMode.AutoSize;
-            alerta.TabIndex = 14;
-            alerta.TabStop = false;
             // 
             // usuarioimagen
             // 
@@ -509,10 +534,10 @@
             autorizar.Controls.Add(usuAdmin);
             autorizar.Controls.Add(label1);
             autorizar.Controls.Add(label2);
-            autorizar.Location = new Point(57, 416);
+            autorizar.Location = new Point(57, 404);
             autorizar.Margin = new Padding(3, 2, 3, 2);
             autorizar.Name = "autorizar";
-            autorizar.Size = new Size(393, 232);
+            autorizar.Size = new Size(393, 244);
             autorizar.TabIndex = 16;
             autorizar.Visible = false;
             // 
@@ -521,7 +546,7 @@
             salirAutorBTN.Cursor = Cursors.Hand;
             salirAutorBTN.Image = Properties.Resources.salida;
             salirAutorBTN.ImageAlign = ContentAlignment.MiddleLeft;
-            salirAutorBTN.Location = new Point(220, 164);
+            salirAutorBTN.Location = new Point(220, 179);
             salirAutorBTN.Name = "salirAutorBTN";
             salirAutorBTN.Size = new Size(154, 41);
             salirAutorBTN.TabIndex = 8;
@@ -534,7 +559,7 @@
             autorizarBTN.Cursor = Cursors.Hand;
             autorizarBTN.Image = Properties.Resources.llave__1_;
             autorizarBTN.ImageAlign = ContentAlignment.MiddleLeft;
-            autorizarBTN.Location = new Point(10, 164);
+            autorizarBTN.Location = new Point(10, 179);
             autorizarBTN.Name = "autorizarBTN";
             autorizarBTN.Size = new Size(154, 41);
             autorizarBTN.TabIndex = 8;
@@ -547,7 +572,7 @@
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label7.ForeColor = Color.White;
-            label7.Location = new Point(100, 10);
+            label7.Location = new Point(100, 25);
             label7.Name = "label7";
             label7.Size = new Size(193, 32);
             label7.TabIndex = 7;
@@ -556,7 +581,7 @@
             // contAdmin
             // 
             contAdmin.CharacterCasing = CharacterCasing.Upper;
-            contAdmin.Location = new Point(116, 110);
+            contAdmin.Location = new Point(116, 125);
             contAdmin.Name = "contAdmin";
             contAdmin.Size = new Size(258, 23);
             contAdmin.TabIndex = 5;
@@ -564,7 +589,7 @@
             // usuAdmin
             // 
             usuAdmin.CharacterCasing = CharacterCasing.Upper;
-            usuAdmin.Location = new Point(116, 64);
+            usuAdmin.Location = new Point(116, 79);
             usuAdmin.Name = "usuAdmin";
             usuAdmin.Size = new Size(258, 23);
             usuAdmin.TabIndex = 6;
@@ -574,7 +599,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             label1.ForeColor = Color.White;
-            label1.Location = new Point(10, 109);
+            label1.Location = new Point(10, 124);
             label1.Name = "label1";
             label1.Size = new Size(96, 21);
             label1.TabIndex = 3;
@@ -585,7 +610,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             label2.ForeColor = Color.White;
-            label2.Location = new Point(10, 63);
+            label2.Location = new Point(10, 78);
             label2.Name = "label2";
             label2.Size = new Size(69, 21);
             label2.TabIndex = 4;
@@ -593,11 +618,11 @@
             // 
             // panelSesion
             // 
+            panelSesion.Controls.Add(sqlbtn);
+            panelSesion.Controls.Add(AvisoDBIMG);
             panelSesion.Controls.Add(contraimagen);
             panelSesion.Controls.Add(usuarioimagen);
-            panelSesion.Controls.Add(alerta);
             panelSesion.Controls.Add(recordarchk);
-            panelSesion.Controls.Add(sqlbtn);
             panelSesion.Controls.Add(pictureBox2);
             panelSesion.Controls.Add(pictureBox1);
             panelSesion.Controls.Add(iniciolabel);
@@ -631,13 +656,17 @@
             Text = "Inicio De Sesion";
             Load += inicio_Load;
             Shown += inicio_Shown;
+            KeyDown += inicio_KeyDown;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)alerta).EndInit();
+            AvisoDBIMG.ResumeLayout(false);
+            AvisoDBIMG.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
             conexionpanel.ResumeLayout(false);
             conexionpanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)txtsql).EndInit();
             conexiones.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)alerta).EndInit();
             ((System.ComponentModel.ISupportInitialize)usuarioimagen).EndInit();
             ((System.ComponentModel.ISupportInitialize)contraimagen).EndInit();
             autorizar.ResumeLayout(false);
@@ -694,5 +723,7 @@
         private Label label2;
         private ProgressBar progressBar1;
         private Panel panelSesion;
+        private PictureBox pictureBox3;
+        private Panel AvisoDBIMG;
     }
 }

@@ -2164,13 +2164,13 @@ namespace Proyecto_restaurante
                 con.Open();
 
                 string sql = @"
-        SELECT 
-            ISNULL(CAST(AVG(CAST(Puntuacion AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS Promedio,
-            COUNT(*) AS Cantidad,
-            ISNULL(CAST(AVG(CAST(Calidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioCalidad,
-            ISNULL(CAST(AVG(CAST(Amabilidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioAmabilidad,
-            ISNULL(CAST(AVG(CAST(Puntualidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioPuntualidad
-        FROM dbo.ResenaDelivery;";
+                SELECT 
+                    ISNULL(CAST(AVG(CAST(Puntuacion AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS Promedio,
+                    COUNT(*) AS Cantidad,
+                    ISNULL(CAST(AVG(CAST(Calidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioCalidad,
+                    ISNULL(CAST(AVG(CAST(Amabilidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioAmabilidad,
+                    ISNULL(CAST(AVG(CAST(Puntualidad AS DECIMAL(10,2))) AS DECIMAL(10,2)), 0) AS PromedioPuntualidad
+                FROM dbo.ResenaDelivery;";
 
                 using (SqlCommand cmd = new SqlCommand(sql, con))
                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -2195,18 +2195,18 @@ namespace Proyecto_restaurante
                 con.Open();
 
                 string sql = @"
-        SELECT TOP 10
-            r.IdPedido,
-            p.NombreCliente,
-            r.Puntuacion,
-            r.Calidad,
-            r.Amabilidad,
-            r.Puntualidad,
-            r.Comentario,
-            r.FechaResena
-        FROM dbo.ResenaDelivery r
-        INNER JOIN dbo.Pedido p ON r.IdPedido = p.IdPedido
-        ORDER BY r.FechaResena DESC;";
+                SELECT TOP 10
+                    r.IdPedido,
+                    p.NombreCliente,
+                    r.Puntuacion,
+                    r.Calidad,
+                    r.Amabilidad,
+                    r.Puntualidad,
+                    r.Comentario,
+                    r.FechaResena
+                FROM dbo.ResenaDelivery r
+                INNER JOIN dbo.Pedido p ON r.IdPedido = p.IdPedido
+                ORDER BY r.FechaResena DESC;";
 
                 using (SqlDataAdapter da = new SqlDataAdapter(sql, con))
                 {
@@ -2240,11 +2240,11 @@ namespace Proyecto_restaurante
             if (dgvUltimasResenas.Columns.Contains("FechaResena"))
                 dgvUltimasResenas.Columns["FechaResena"].HeaderText = "Fecha";
         }
+
         private void label18_Click(object sender, EventArgs e)
         {
 
         }
-
 
         private void tabPage1_Click(object sender, EventArgs e)
         {
@@ -2262,21 +2262,6 @@ namespace Proyecto_restaurante
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel5_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void label23_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label23_Click_1(object sender, EventArgs e)
         {
 
         }
