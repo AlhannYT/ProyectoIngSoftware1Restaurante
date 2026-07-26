@@ -1,4 +1,7 @@
-﻿using PdfSharp.Drawing;
+﻿using System;
+using System.Windows.Forms;
+using PdfiumViewer;
+using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using System;
 using System.Collections.Generic;
@@ -233,6 +236,18 @@ namespace Proyecto_restaurante
         {
             bool commitRealizado = false;
             int idPedidoGenerado = 0;
+
+            if (detalleorden.Rows.Cast<DataGridViewRow>().All(r => r.IsNewRow))
+            {
+                MessageBox.Show("No puede guardar una orden sin productos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (Convert.ToDecimal(labeltotal.Text) <= 0)
+            {
+                MessageBox.Show("El total de la orden debe ser mayor a cero.");
+                return;
+            }
 
             if (EditarEstado == 0)
             {
@@ -1575,6 +1590,65 @@ namespace Proyecto_restaurante
             }
         }
 
+        private void imprimirbtn_Click(object sender, EventArgs e)
+        {
+            if (PedidoID > 0)
+            {
+                try
+                {
+                    GenerarFacturasPorPedido(PedidoID);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al generar el PDF: {ex.Message}\nDetalles: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Seleccione una factura válida para imprimir.");
+            }
+        }
+
+        private void GenerarFacturasPorPedido(int idPedido)
+        {
+            List<int> cuentas = new List<int>();
+
+            using (SqlConnection con = new SqlConnection(conexionString))
+            {
+                con.Open();
+
+                string sql = @"
+                SELECT DISTINCT Cuenta
+                FROM DetallePedido
+                WHERE IdPedido = @id
+                ORDER BY Cuenta";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPedido);
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            cuentas.Add(Convert.ToInt32(dr["Cuenta"]));
+                        }
+                    }
+                }
+            }
+
+            if (cuentas.Count == 1 && cuentas[0] == 0)
+            {
+                GenerarFacturaPDF(idPedido, 0);
+                return;
+            }
+
+            foreach (int cuenta in cuentas.Where(c => c > 0))
+            {
+                GenerarFacturaPDF(idPedido, cuenta);
+            }
+        }
+        
         private void GenerarFacturaPDF(int idPedido, int cuenta)
         {
             try
@@ -1623,8 +1697,8 @@ namespace Proyecto_restaurante
                     con.Open();
 
                     string sqlPedido = @"
-                    SELECT IdPedido, Fecha, NombreCliente, IdMesa, Comprobante
-                    FROM Pedido
+                    SELECT IdPedido, Fecha, NombreCliente, IdMesa, Comprobante 
+                    FROM Pedido 
                     WHERE IdPedido = @id";
 
                     using (SqlCommand cmd = new SqlCommand(sqlPedido, con))
@@ -1662,10 +1736,19 @@ namespace Proyecto_restaurante
                 gfx.DrawString("DETALLE", headerFont, XBrushes.Black, marginLeft, currentY);
                 currentY += lineHeight;
 
-                gfx.DrawString("Producto", headerFont, XBrushes.Black, marginLeft, currentY);
-                gfx.DrawString("Cant.", headerFont, XBrushes.Black, marginLeft + 250, currentY);
-                gfx.DrawString("Precio", headerFont, XBrushes.Black, marginLeft + 320, currentY);
-                gfx.DrawString("Subtotal", headerFont, XBrushes.Black, marginLeft + 400, currentY);
+                double colProducto = marginLeft;
+                double colCant = marginLeft + 190;
+                double colPrecio = marginLeft + 245;
+                double colSubtotal = marginLeft + 335;
+                double colItbis = marginLeft + 415;
+                double colTotal = marginLeft + 475;
+
+                gfx.DrawString("Producto", headerFont, XBrushes.Black, colProducto, currentY);
+                gfx.DrawString("Cant.", headerFont, XBrushes.Black, colCant, currentY);
+                gfx.DrawString("Precio Unit.", headerFont, XBrushes.Black, colPrecio, currentY);
+                gfx.DrawString("Subtotal", headerFont, XBrushes.Black, colSubtotal, currentY);
+                gfx.DrawString("ITBIS", headerFont, XBrushes.Black, colItbis, currentY);
+                gfx.DrawString("Total", headerFont, XBrushes.Black, colTotal, currentY);
 
                 currentY += lineHeight;
                 gfx.DrawLine(XPens.Black, marginLeft, currentY, page.Width - marginLeft, currentY);
@@ -1678,12 +1761,14 @@ namespace Proyecto_restaurante
                     con.Open();
 
                     string sqlDetalle = @"
-                    SELECT d.Cantidad,
-                           d.PrecioUnitario,
-                           (d.Cantidad * d.PrecioUnitario) AS Subtotal,
-                           p.Nombre
-                    FROM DetallePedido d
-                    INNER JOIN ProductoVenta p ON p.IdProducto = d.IdProducto
+                    SELECT d.Cantidad, 
+                           d.PrecioUnitario, 
+                           (d.Cantidad * d.PrecioUnitario) AS Subtotal, 
+                           (d.Cantidad * d.Itbis) AS ItbisTotal, 
+                           (d.Cantidad * (d.PrecioUnitario + d.Itbis)) AS Total, 
+                           p.Nombre 
+                    FROM DetallePedido d 
+                    INNER JOIN ProductoVenta p ON p.IdProducto = d.IdProducto 
                     WHERE d.IdPedido = @id AND d.Cuenta = @cuenta";
 
                     using (SqlCommand cmd = new SqlCommand(sqlDetalle, con))
@@ -1699,13 +1784,17 @@ namespace Proyecto_restaurante
                                 decimal cant = Convert.ToDecimal(dr["Cantidad"]);
                                 decimal precio = Convert.ToDecimal(dr["PrecioUnitario"]);
                                 decimal sub = Convert.ToDecimal(dr["Subtotal"]);
+                                decimal itbis = Convert.ToDecimal(dr["ItbisTotal"]);
+                                decimal total = Convert.ToDecimal(dr["Total"]);
 
-                                totalFactura += sub;
+                                totalFactura += total;
 
-                                gfx.DrawString(prod, textFont, XBrushes.Black, marginLeft, currentY);
-                                gfx.DrawString(cant.ToString(), textFont, XBrushes.Black, marginLeft + 250, currentY);
-                                gfx.DrawString(precio.ToString("N2"), textFont, XBrushes.Black, marginLeft + 320, currentY);
-                                gfx.DrawString(sub.ToString("N2"), textFont, XBrushes.Black, marginLeft + 400, currentY);
+                                gfx.DrawString(prod, textFont, XBrushes.Black, colProducto, currentY);
+                                gfx.DrawString(cant.ToString(), textFont, XBrushes.Black, colCant, currentY);
+                                gfx.DrawString(precio.ToString("N2"), textFont, XBrushes.Black, colPrecio, currentY);
+                                gfx.DrawString(sub.ToString("N2"), textFont, XBrushes.Black, colSubtotal, currentY);
+                                gfx.DrawString(itbis.ToString("N2"), textFont, XBrushes.Black, colItbis, currentY);
+                                gfx.DrawString(total.ToString("N2"), textFont, XBrushes.Black, colTotal, currentY);
 
                                 currentY += lineHeight;
                             }
@@ -1717,15 +1806,14 @@ namespace Proyecto_restaurante
                 gfx.DrawLine(XPens.Black, marginLeft, currentY, page.Width - marginLeft, currentY);
                 currentY += 20;
 
-                gfx.DrawString($"TOTAL: RD$ {totalFactura:N2}", titleFont, XBrushes.Black, marginLeft + 250, currentY);
+                gfx.DrawString($"TOTAL: RD$ {totalFactura:N2}", titleFont, XBrushes.Black, colSubtotal, currentY);
 
                 document.Save(filePath);
 
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                using (FormVisorFactura visor = new FormVisorFactura(filePath))
                 {
-                    FileName = filePath,
-                    UseShellExecute = true
-                });
+                    visor.ShowDialog();
+                }
             }
             catch (Exception ex)
             {
@@ -1733,62 +1821,51 @@ namespace Proyecto_restaurante
             }
         }
 
-        private void GenerarFacturasPorPedido(int idPedido)
+        public partial class FormVisorFactura : Form
         {
-            List<int> cuentas = new List<int>();
+            private PdfViewer pdfViewer;
 
-            using (SqlConnection con = new SqlConnection(conexionString))
+            public FormVisorFactura(string rutaArchivo)
             {
-                con.Open();
+                ConfigurarFormulario(rutaArchivo);
+                CargarPDF(rutaArchivo);
+            }
 
-                string sql = @"
-                SELECT DISTINCT Cuenta
-                FROM DetallePedido
-                WHERE IdPedido = @id
-                ORDER BY Cuenta";
+            private void ConfigurarFormulario(string rutaArchivo)
+            {
+                this.Text = "Visor de Factura - " + System.IO.Path.GetFileName(rutaArchivo);
+                this.Size = new System.Drawing.Size(800, 900);
+                this.StartPosition = FormStartPosition.CenterParent;
+                this.Icon = SystemIcons.Information;
 
-                using (SqlCommand cmd = new SqlCommand(sql, con))
+                pdfViewer = new PdfViewer
                 {
-                    cmd.Parameters.AddWithValue("@id", idPedido);
+                    Dock = DockStyle.Fill,
+                    ZoomMode = PdfViewerZoomMode.FitWidth
+                };
 
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            cuentas.Add(Convert.ToInt32(dr["Cuenta"]));
-                        }
-                    }
-                }
+                this.Controls.Add(pdfViewer);
             }
 
-            if (cuentas.Count == 1 && cuentas[0] == 0)
-            {
-                GenerarFacturaPDF(idPedido, 0);
-                return;
-            }
-
-            foreach (int cuenta in cuentas.Where(c => c > 0))
-            {
-                GenerarFacturaPDF(idPedido, cuenta);
-            }
-        }
-
-        private void imprimirbtn_Click(object sender, EventArgs e)
-        {
-            if (PedidoID > 0)
+            private void CargarPDF(string rutaArchivo)
             {
                 try
                 {
-                    GenerarFacturasPorPedido(PedidoID);
+                    pdfViewer.Document = PdfiumViewer.PdfDocument.Load(rutaArchivo);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error al generar el PDF: {ex.Message}\nDetalles: {ex.StackTrace}");
+                    MessageBox.Show("Error al cargar el documento en el visor: " + ex.Message);
                 }
             }
-            else
+
+            protected override void OnFormClosing(FormClosingEventArgs e)
             {
-                MessageBox.Show("Seleccione una factura válida para imprimir.");
+                if (pdfViewer.Document != null)
+                {
+                    pdfViewer.Document.Dispose();
+                }
+                base.OnFormClosing(e);
             }
         }
 

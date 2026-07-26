@@ -13,8 +13,12 @@
     <PackageReference Include="FontAwesome" Version="4.7.0" />
     <PackageReference Include="MaterialSkin.2" Version="2.3.1" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
+    <PackageReference Include="PdfiumViewer.Native.x86.v8-xfa" Version="2018.4.8.256" />
+    <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
     <PackageReference Include="PDFsharp-MigraDoc-GDI" Version="6.2.4" />
+    <PackageReference Include="ReportViewerCore.WinForms" Version="15.1.33" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>

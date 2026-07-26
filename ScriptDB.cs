@@ -2074,6 +2074,9 @@ namespace Proyecto_restaurante
 				ORDER BY
 					p.Fecha ASC;
 			END;
+
+			ALTER TABLE DetallePedido ADD Itbis DECIMAL(10, 2)
+
 			GO
 			USE [master]
 			GO
